@@ -7,8 +7,8 @@ const context = canvas.getContext("2d");
 
 const PAGE_WIDTH = 595.2756;
 const PAGE_HEIGHT = 841.8898;
-const LABEL_WIDTH = 85.0394;
-const LABEL_HEIGHT = 56.6929;
+const LABEL_WIDTH = 170.0787;
+const LABEL_HEIGHT = 113.3858;
 const PAGE_MARGIN = 56.6929;
 
 function fitText(text, maxWidth, startingSize) {
