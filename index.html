@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Create and download a printable 3 cm by 2 cm spice label."
+    />
+    <title>Spice Label Maker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="intro" aria-labelledby="page-title">
+        <div class="brand" aria-label="Spice label maker">
+          <span class="brand-mark" aria-hidden="true">✦</span>
+          <span>MASON'S FINE SPICES</span>
+        </div>
+        <div>
+          <p class="eyebrow">PANTRY, BEAUTIFULLY ORDERED</p>
+          <h1 id="page-title">Label your<br /><em>flavour.</em></h1>
+          <p class="lede">
+            Create a crisp, print-ready label sized precisely for your spice jars.
+          </p>
+        </div>
+        <div class="size-note">
+          <span class="ruler" aria-hidden="true"></span>
+          <p><strong>3 × 2 cm</strong><br />Exact label dimensions</p>
+        </div>
+      </section>
+
+      <section class="maker" aria-labelledby="maker-title">
+        <div class="maker-header">
+          <div>
+            <p class="step">01 — NAME YOUR SPICE</p>
+            <h2 id="maker-title">Create your label</h2>
+          </div>
+          <span class="dimension">30 × 20 mm</span>
+        </div>
+
+        <form id="label-form" novalidate>
+          <label for="spice-name">Spice name</label>
+          <div class="input-wrap">
+            <input
+              id="spice-name"
+              name="spice-name"
+              type="text"
+              maxlength="32"
+              autocomplete="off"
+              placeholder="e.g. Smoked Paprika"
+              aria-describedby="input-hint"
+              autofocus
+            />
+            <span id="character-count">0/32</span>
+          </div>
+          <p id="input-hint">Keep it short for the clearest result.</p>
+
+          <div class="preview-section">
+            <div class="preview-heading">
+              <span>PREVIEW</span>
+              <span>ACTUAL RATIO</span>
+            </div>
+            <div class="preview-stage">
+              <canvas
+                id="label-canvas"
+                width="900"
+                height="600"
+                aria-label="Preview of your spice label"
+              ></canvas>
+            </div>
+          </div>
+
+          <p id="form-message" class="form-message" role="alert" aria-live="polite"></p>
+          <button id="download-button" type="submit">
+            <span>Download PDF</span>
+            <span class="button-icon" aria-hidden="true">↓</span>
+          </button>
+        </form>
+
+        <p class="print-tip">
+          <span aria-hidden="true">●</span>
+          A4 page · 2 cm top and left offset · Print at 100% scale.
+        </p>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
