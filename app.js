@@ -1,6 +1,6 @@
 const form = document.querySelector("#label-form");
-const input = document.querySelector("#spice-name");
-const counter = document.querySelector("#character-count");
+const spiceInputs = [...document.querySelectorAll('input[name="spice"]')];
+const selectionCount = document.querySelector("#selection-count");
 const message = document.querySelector("#form-message");
 const canvas = document.querySelector("#label-canvas");
 const context = canvas.getContext("2d");
@@ -10,6 +10,8 @@ const PAGE_HEIGHT = 841.8898;
 const LABEL_WIDTH = 170.0787;
 const LABEL_HEIGHT = 113.3858;
 const PAGE_MARGIN = 56.6929;
+const CUT_OFFSET = 5.6693;
+const GRID_COLUMNS = 3;
 
 function fitText(text, maxWidth, startingSize) {
   let size = startingSize;
@@ -98,23 +100,50 @@ function dataUrlToBytes(dataUrl) {
   return bytes;
 }
 
-function createPdf() {
-  const imageBytes = dataUrlToBytes(canvas.toDataURL("image/jpeg", 0.96));
-  const labelBottom = PAGE_HEIGHT - PAGE_MARGIN - LABEL_HEIGHT;
-  const content = `q\n${LABEL_WIDTH} 0 0 ${LABEL_HEIGHT} ${PAGE_MARGIN} ${labelBottom} cm\n/Img1 Do\nQ\n`;
+function createPdf(spiceNames) {
+  const imageBytes = spiceNames.map((name) => {
+    drawLabel(name);
+    return dataUrlToBytes(canvas.toDataURL("image/jpeg", 0.96));
+  });
+  const imageResources = spiceNames
+    .map((_, index) => `/Img${index + 1} ${index + 4} 0 R`)
+    .join(" ");
+  const contentObjectId = spiceNames.length + 4;
+  const cutWidth = LABEL_WIDTH + CUT_OFFSET * 2;
+  const cutHeight = LABEL_HEIGHT + CUT_OFFSET * 2;
+  const commands = ["0.25 w", "[2 2] 0 d", "0.65 G"];
+
+  spiceNames.forEach((_, index) => {
+    const column = index % GRID_COLUMNS;
+    const row = Math.floor(index / GRID_COLUMNS);
+    const labelLeft = PAGE_MARGIN + column * cutWidth;
+    const labelTop = PAGE_MARGIN + row * cutHeight;
+    const labelBottom = PAGE_HEIGHT - labelTop - LABEL_HEIGHT;
+    const cutLeft = labelLeft - CUT_OFFSET;
+    const cutBottom = labelBottom - CUT_OFFSET;
+
+    commands.push(
+      `${cutLeft} ${cutBottom} ${cutWidth} ${cutHeight} re S`,
+      `q\n${LABEL_WIDTH} 0 0 ${LABEL_HEIGHT} ${labelLeft} ${labelBottom} cm\n/Img${index + 1} Do\nQ`,
+    );
+  });
+
+  const content = `${commands.join("\n")}\n`;
   const objects = [
     ascii("<< /Type /Catalog /Pages 2 0 R >>"),
     ascii("<< /Type /Pages /Kids [3 0 R] /Count 1 >>"),
     ascii(
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /Resources << /XObject << /Img1 4 0 R >> >> /Contents 5 0 R >>`,
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /Resources << /XObject << ${imageResources} >> >> /Contents ${contentObjectId} 0 R >>`,
     ),
-    joinBytes([
-      ascii(
-        `<< /Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${imageBytes.length} >>\nstream\n`,
-      ),
-      imageBytes,
-      ascii("\nendstream"),
-    ]),
+    ...imageBytes.map((bytes) =>
+      joinBytes([
+        ascii(
+          `<< /Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${bytes.length} >>\nstream\n`,
+        ),
+        bytes,
+        ascii("\nendstream"),
+      ]),
+    ),
     ascii(`<< /Length ${ascii(content).length} >>\nstream\n${content}endstream`),
   ];
 
@@ -151,42 +180,40 @@ function createPdf() {
   return new Blob([joinBytes(parts)], { type: "application/pdf" });
 }
 
-function safeFilename(name) {
-  const cleanName = name
-    .trim()
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-
-  return `${cleanName || "spice"}-label.pdf`;
+function selectedSpices() {
+  return spiceInputs.filter((input) => input.checked).map((input) => input.value);
 }
 
-input.addEventListener("input", () => {
-  counter.textContent = `${input.value.length}/32`;
+function updateSelection() {
+  const spices = selectedSpices();
+  const count = spices.length;
+
+  selectionCount.textContent = `${count} ${count === 1 ? "LABEL" : "LABELS"} SELECTED`;
   message.textContent = "";
-  drawLabel(input.value);
-});
+  drawLabel(spices[0] || "");
+}
+
+spiceInputs.forEach((input) => input.addEventListener("change", updateSelection));
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
+  const spices = selectedSpices();
 
-  if (!input.value.trim()) {
-    message.textContent = "Enter a spice name to create your label.";
-    input.focus();
+  if (spices.length === 0) {
+    message.textContent = "Select at least one spice to create a label sheet.";
+    spiceInputs[0].focus();
     return;
   }
 
-  drawLabel(input.value);
-  const downloadUrl = URL.createObjectURL(createPdf());
+  const downloadUrl = URL.createObjectURL(createPdf(spices));
   const link = document.createElement("a");
   link.href = downloadUrl;
-  link.download = safeFilename(input.value);
+  link.download = "mason-spice-labels.pdf";
   link.click();
   setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
   message.textContent = "";
+  drawLabel(spices[0]);
 });
 
-document.fonts.ready.then(() => drawLabel(input.value));
-drawLabel();
+document.fonts.ready.then(updateSelection);
+updateSelection();

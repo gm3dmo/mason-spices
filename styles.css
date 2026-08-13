@@ -187,51 +187,83 @@ form {
   margin-top: 40px;
 }
 
-label {
-  display: block;
-  margin-bottom: 10px;
+.spice-picker {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.spice-picker legend {
+  margin-bottom: 12px;
   font-size: 0.77rem;
   font-weight: 600;
   letter-spacing: 0.05em;
 }
 
-.input-wrap {
+.spice-options {
+  display: grid;
+  gap: 9px;
+}
+
+.spice-option {
   position: relative;
+  display: block;
+  cursor: pointer;
 }
 
-input {
-  width: 100%;
-  padding: 15px 58px 15px 0;
-  border: 0;
-  border-bottom: 1px solid #8d887d;
-  outline: 0;
-  color: var(--ink);
-  background: transparent;
-  font-family: "Fraunces", Georgia, serif;
-  font-size: 1.25rem;
-  transition: border-color 180ms ease;
-}
-
-input::placeholder {
-  color: #aaa59a;
-}
-
-input:focus {
-  border-color: var(--terracotta);
-}
-
-#character-count {
+.spice-option input {
   position: absolute;
-  right: 0;
-  bottom: 17px;
-  color: #9b968b;
-  font-size: 0.68rem;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
 }
 
-#input-hint {
-  margin: 8px 0 0;
-  color: #8a867b;
-  font-size: 0.68rem;
+.option-content {
+  min-height: 48px;
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  color: #625f55;
+  background: rgba(255, 255, 255, 0.28);
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 0.98rem;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.checkmark {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #a09c91;
+  border-radius: 50%;
+  color: transparent;
+  font-family: "DM Sans", Arial, sans-serif;
+  font-size: 0.72rem;
+}
+
+.spice-option input:checked + .option-content {
+  border-color: rgba(53, 67, 50, 0.55);
+  color: var(--ink);
+  background: rgba(96, 112, 90, 0.09);
+}
+
+.spice-option input:checked + .option-content .checkmark {
+  border-color: var(--sage-dark);
+  color: #fffdf8;
+  background: var(--sage-dark);
+}
+
+.spice-option input:focus-visible + .option-content {
+  outline: 3px solid rgba(182, 91, 63, 0.3);
+  outline-offset: 2px;
 }
 
 .preview-section {

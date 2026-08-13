@@ -39,33 +39,44 @@
       <section class="maker" aria-labelledby="maker-title">
         <div class="maker-header">
           <div>
-            <p class="step">01 — NAME YOUR SPICE</p>
-            <h2 id="maker-title">Create your label</h2>
+            <p class="step">01 — SELECT YOUR SPICES</p>
+            <h2 id="maker-title">Create your labels</h2>
           </div>
           <span class="dimension">60 × 40 mm</span>
         </div>
 
         <form id="label-form" novalidate>
-          <label for="spice-name">Spice name</label>
-          <div class="input-wrap">
-            <input
-              id="spice-name"
-              name="spice-name"
-              type="text"
-              maxlength="32"
-              autocomplete="off"
-              placeholder="e.g. Smoked Paprika"
-              aria-describedby="input-hint"
-              autofocus
-            />
-            <span id="character-count">0/32</span>
-          </div>
-          <p id="input-hint">Keep it short for the clearest result.</p>
+          <fieldset class="spice-picker">
+            <legend>Spices to include</legend>
+            <div class="spice-options">
+              <label class="spice-option">
+                <input type="checkbox" name="spice" value="Cumin Powder" checked />
+                <span class="option-content">
+                  <span class="checkmark" aria-hidden="true">✓</span>
+                  <span>Cumin Powder</span>
+                </span>
+              </label>
+              <label class="spice-option">
+                <input type="checkbox" name="spice" value="Cumin Seeds" checked />
+                <span class="option-content">
+                  <span class="checkmark" aria-hidden="true">✓</span>
+                  <span>Cumin Seeds</span>
+                </span>
+              </label>
+              <label class="spice-option">
+                <input type="checkbox" name="spice" value="Ginger Powder" checked />
+                <span class="option-content">
+                  <span class="checkmark" aria-hidden="true">✓</span>
+                  <span>Ginger Powder</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
 
           <div class="preview-section">
             <div class="preview-heading">
               <span>PREVIEW</span>
-              <span>ACTUAL RATIO</span>
+              <span id="selection-count">3 LABELS SELECTED</span>
             </div>
             <div class="preview-stage">
               <canvas
@@ -79,14 +90,14 @@
 
           <p id="form-message" class="form-message" role="alert" aria-live="polite"></p>
           <button id="download-button" type="submit">
-            <span>Download PDF</span>
+            <span>Download label sheet</span>
             <span class="button-icon" aria-hidden="true">↓</span>
           </button>
         </form>
 
         <p class="print-tip">
           <span aria-hidden="true">●</span>
-          A4 page · 2 cm top and left offset · Print at 100% scale.
+          A4 page · 2 mm cut guides · Print at 100% scale.
         </p>
       </section>
     </main>
