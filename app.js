@@ -10,84 +10,120 @@ const message = document.querySelector("#form-message");
 const previewGrid = document.querySelector("#preview-grid");
 const dimension = document.querySelector("#dimension");
 const templateNote = document.querySelector("#template-note");
+const printTipText = document.querySelector("#print-tip-text");
 const renderCanvas = document.createElement("canvas");
 
 const POINTS_PER_INCH = 72;
-const LETTER_WIDTH = 8.5 * POINTS_PER_INCH;
-const LETTER_HEIGHT = 11 * POINTS_PER_INCH;
+const A4_WIDTH = (210 / 25.4) * POINTS_PER_INCH;
+const A4_HEIGHT = (297 / 25.4) * POINTS_PER_INCH;
 const MAX_SPICES = 100;
 const LABEL_TEMPLATES = {
-  5160: {
-    name: "Avery 5160",
-    width: 2.625,
-    height: 1,
+  "plain-a4": {
+    name: "Plain A4",
+    width: 60 / 25.4,
+    height: 40 / 25.4,
     columns: 3,
-    rows: 10,
-    left: 0.1875,
-    top: 0.5,
-    horizontalPitch: 2.75,
-    verticalPitch: 1,
-    size: "2⅝ × 1 in",
+    rows: 6,
+    left: 20 / 25.4,
+    top: 20 / 25.4,
+    horizontalPitch: 64 / 25.4,
+    verticalPitch: 44 / 25.4,
+    pageWidth: A4_WIDTH,
+    pageHeight: A4_HEIGHT,
+    cutOffset: 2 / 25.4,
+    originalDesign: true,
+    size: "60 × 40 mm",
+    paper: "A4",
   },
-  5163: {
-    name: "Avery 5163",
-    width: 4,
-    height: 2,
+  l7159: {
+    name: "Avery L7159",
+    width: 63.5 / 25.4,
+    height: 33.9 / 25.4,
+    columns: 3,
+    rows: 8,
+    left: 7.25 / 25.4,
+    top: 12.9 / 25.4,
+    horizontalPitch: 66 / 25.4,
+    verticalPitch: 33.9 / 25.4,
+    pageWidth: A4_WIDTH,
+    pageHeight: A4_HEIGHT,
+    size: "63.5 × 33.9 mm",
+    paper: "A4",
+  },
+  l7160: {
+    name: "Avery L7160",
+    width: 63.5 / 25.4,
+    height: 38.1 / 25.4,
+    columns: 3,
+    rows: 7,
+    left: 7.25 / 25.4,
+    top: 15.15 / 25.4,
+    horizontalPitch: 66 / 25.4,
+    verticalPitch: 38.1 / 25.4,
+    pageWidth: A4_WIDTH,
+    pageHeight: A4_HEIGHT,
+    size: "63.5 × 38.1 mm",
+    paper: "A4",
+  },
+  l7161: {
+    name: "Avery L7161",
+    width: 63.5 / 25.4,
+    height: 46.6 / 25.4,
+    columns: 3,
+    rows: 6,
+    left: 7.25 / 25.4,
+    top: 8.7 / 25.4,
+    horizontalPitch: 66 / 25.4,
+    verticalPitch: 46.6 / 25.4,
+    pageWidth: A4_WIDTH,
+    pageHeight: A4_HEIGHT,
+    size: "63.5 × 46.6 mm",
+    paper: "A4",
+  },
+  l7162: {
+    name: "Avery L7162",
+    width: 99.1 / 25.4,
+    height: 33.9 / 25.4,
     columns: 2,
-    rows: 5,
-    left: 0.15625,
-    top: 0.5,
-    horizontalPitch: 4.1875,
-    verticalPitch: 2,
-    size: "4 × 2 in",
+    rows: 8,
+    left: 4.65 / 25.4,
+    top: 12.9 / 25.4,
+    horizontalPitch: 101.6 / 25.4,
+    verticalPitch: 33.9 / 25.4,
+    pageWidth: A4_WIDTH,
+    pageHeight: A4_HEIGHT,
+    size: "99.1 × 33.9 mm",
+    paper: "A4",
   },
-  5164: {
-    name: "Avery 5164",
-    width: 4,
-    height: 10 / 3,
+  l7163: {
+    name: "Avery L7163",
+    width: 99.1 / 25.4,
+    height: 38.1 / 25.4,
     columns: 2,
-    rows: 3,
-    left: 0.15625,
-    top: 0.5,
-    horizontalPitch: 4.1875,
-    verticalPitch: 10 / 3,
-    size: "4 × 3⅓ in",
+    rows: 7,
+    left: 4.65 / 25.4,
+    top: 15.15 / 25.4,
+    horizontalPitch: 101.6 / 25.4,
+    verticalPitch: 38.1 / 25.4,
+    pageWidth: A4_WIDTH,
+    pageHeight: A4_HEIGHT,
+    size: "99.1 × 38.1 mm",
+    paper: "A4",
   },
-  5167: {
-    name: "Avery 5167",
-    width: 1.75,
-    height: 0.5,
-    columns: 4,
-    rows: 20,
-    left: 0.28125,
-    top: 0.5,
-    horizontalPitch: 2.0625,
-    verticalPitch: 0.5,
-    size: "1¾ × ½ in",
-  },
-  5195: {
-    name: "Avery 5195",
-    width: 1.75,
-    height: 2 / 3,
-    columns: 4,
-    rows: 15,
-    left: 0.28125,
-    top: 0.5,
-    horizontalPitch: 2.0625,
-    verticalPitch: 2 / 3,
-    size: "1¾ × ⅔ in",
-  },
-  22822: {
-    name: "Avery 22822",
-    width: 3,
-    height: 2,
+  l7165: {
+    name: "Avery L7165",
+    width: 99.1 / 25.4,
+    height: 67.7 / 25.4,
     columns: 2,
     rows: 4,
-    left: 0.8125,
-    top: 1.25,
-    horizontalPitch: 3.75,
-    verticalPitch: 2.125,
-    size: "3 × 2 in",
+    left: 4.65 / 25.4,
+    top: 13.1 / 25.4,
+    horizontalPitch: 101.6 / 25.4,
+    verticalPitch: 67.7 / 25.4,
+    pageWidth: A4_WIDTH,
+    pageHeight: A4_HEIGHT,
+    size: "99.1 × 67.7 mm",
+    paper: "A4",
   },
 };
 const DEFAULT_SPICES = [
@@ -226,6 +262,7 @@ function drawLabel(
   name = "",
   heading = "MASON'S FINE SPICES",
   borderStyle = "classic",
+  template = currentTemplate(),
 ) {
   const context = canvas.getContext("2d");
   const width = canvas.width;
@@ -237,13 +274,39 @@ function drawLabel(
 
   context.fillStyle = "#fffaf0";
   context.fillRect(0, 0, width, height);
-  drawBorder(context, width, height, borderStyle);
+
+  if (template.originalDesign && borderStyle === "classic") {
+    context.strokeStyle = "#354332";
+    context.lineWidth = width * (8 / 900);
+    context.strokeRect(
+      width * (18 / 900),
+      height * (18 / 600),
+      width * (864 / 900),
+      height * (564 / 600),
+    );
+
+    context.strokeStyle = "#b65b3f";
+    context.lineWidth = width * (2 / 900);
+    context.strokeRect(
+      width * (31 / 900),
+      height * (31 / 600),
+      width * (838 / 900),
+      height * (538 / 600),
+    );
+  } else {
+    drawBorder(context, width, height, borderStyle);
+  }
 
   context.textAlign = "center";
   context.textBaseline = "middle";
 
   const headingFont = "DM Sans, Arial, sans-serif";
-  const headingY = compact ? height * 0.25 : height * 0.2;
+  const originalDesign = template.originalDesign && borderStyle === "classic";
+  const headingY = originalDesign
+    ? height * (122 / 600)
+    : compact
+      ? height * 0.25
+      : height * 0.2;
   const headingSize = fitText(
     context,
     displayHeading,
@@ -257,7 +320,24 @@ function drawLabel(
   context.font = `600 ${headingSize}px ${headingFont}`;
   context.fillText(displayHeading, width / 2, headingY);
 
-  const nameY = compact ? height * 0.59 : height * 0.53;
+  if (originalDesign) {
+    context.fillStyle = "#354332";
+    context.beginPath();
+    context.arc(
+      width / 2,
+      height * (176 / 600),
+      width * (5 / 900),
+      0,
+      Math.PI * 2,
+    );
+    context.fill();
+  }
+
+  const nameY = originalDesign
+    ? height * (315 / 600)
+    : compact
+      ? height * 0.59
+      : height * 0.53;
   const nameSize = fitText(
     context,
     displayName,
@@ -270,17 +350,21 @@ function drawLabel(
   context.fillText(displayName, width / 2, nameY);
 
   if (!compact) {
-    const lineY = height * 0.7;
+    const lineY = originalDesign ? height * (405 / 600) : height * 0.7;
     context.strokeStyle = "#b65b3f";
     context.lineWidth = Math.max(2, shortSide * 0.006);
     context.beginPath();
-    context.moveTo(width * 0.38, lineY);
-    context.lineTo(width * 0.62, lineY);
+    context.moveTo(originalDesign ? width * (340 / 900) : width * 0.38, lineY);
+    context.lineTo(originalDesign ? width * (560 / 900) : width * 0.62, lineY);
     context.stroke();
 
     context.fillStyle = "#60705a";
     context.font = `600 ${Math.max(13, shortSide * 0.036)}px ${headingFont}`;
-    context.fillText("PANTRY GOODS", width / 2, height * 0.82);
+    context.fillText(
+      "PANTRY GOODS",
+      width / 2,
+      originalDesign ? height * (466 / 600) : height * 0.82,
+    );
   }
 }
 
@@ -319,15 +403,22 @@ function createPageContent(spiceNames, template, firstImageIndex) {
   const top = template.top * POINTS_PER_INCH;
   const horizontalPitch = template.horizontalPitch * POINTS_PER_INCH;
   const verticalPitch = template.verticalPitch * POINTS_PER_INCH;
-  const commands = [];
+  const pageHeight = template.pageHeight;
+  const cutOffset = (template.cutOffset || 0) * POINTS_PER_INCH;
+  const commands = cutOffset ? ["0.25 w", "[2 2] 0 d", "0.65 G"] : [];
 
   spiceNames.forEach((_, index) => {
     const column = index % template.columns;
     const row = Math.floor(index / template.columns);
     const labelLeft = left + column * horizontalPitch;
     const labelTop = top + row * verticalPitch;
-    const labelBottom = LETTER_HEIGHT - labelTop - labelHeight;
+    const labelBottom = pageHeight - labelTop - labelHeight;
 
+    if (cutOffset) {
+      commands.push(
+        `${labelLeft - cutOffset} ${labelBottom - cutOffset} ${labelWidth + cutOffset * 2} ${labelHeight + cutOffset * 2} re S`,
+      );
+    }
     commands.push(
       `q\n${labelWidth} 0 0 ${labelHeight} ${labelLeft} ${labelBottom} cm\n/Img${firstImageIndex + index + 1} Do\nQ`,
     );
@@ -339,7 +430,7 @@ function createPageContent(spiceNames, template, firstImageIndex) {
 function createPdf(spiceNames, heading, template, borderStyle) {
   sizeCanvas(renderCanvas, template);
   const imageBytes = spiceNames.map((name) => {
-    drawLabel(renderCanvas, name, heading, borderStyle);
+    drawLabel(renderCanvas, name, heading, borderStyle, template);
     return dataUrlToBytes(renderCanvas.toDataURL("image/jpeg", 0.96));
   });
   const labelsPerPage = template.columns * template.rows;
@@ -369,7 +460,7 @@ function createPdf(spiceNames, heading, template, borderStyle) {
     ),
     ...pageIds.map((_, index) =>
       ascii(
-        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${LETTER_WIDTH} ${LETTER_HEIGHT}] /Resources << /XObject << ${imageResources} >> >> /Contents ${contentObjectStart + index} 0 R >>`,
+        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${template.pageWidth} ${template.pageHeight}] /Resources << /XObject << ${imageResources} >> >> /Contents ${contentObjectStart + index} 0 R >>`,
       ),
     ),
     ...imageBytes.map((bytes) =>
@@ -486,6 +577,9 @@ function updateTemplateDetails(template) {
   const capacity = template.columns * template.rows;
   dimension.textContent = template.size;
   templateNote.textContent = `${template.size} · ${template.columns} columns × ${template.rows} rows · ${capacity} per sheet`;
+  printTipText.textContent = template.cutOffset
+    ? "A4 plain paper · 2 mm cut guides · Print at 100% scale."
+    : "A4 · Matches the selected Avery sheet · Print at 100% scale.";
 }
 
 function updateSelection() {
@@ -518,7 +612,7 @@ function updateSelection() {
     const previewCanvas = document.createElement("canvas");
     sizeCanvas(previewCanvas, template);
     previewCanvas.setAttribute("aria-label", `${name} label preview`);
-    drawLabel(previewCanvas, name, heading, borderStyle);
+    drawLabel(previewCanvas, name, heading, borderStyle, template);
     previewGrid.append(previewCanvas);
   });
 }
@@ -563,7 +657,10 @@ form.addEventListener("submit", (event) => {
     const link = document.createElement("a");
 
     link.href = downloadUrl;
-    link.download = `mason-spice-labels-avery-${labelTemplateSelect.value}.pdf`;
+    link.download =
+      labelTemplateSelect.value === "plain-a4"
+        ? "mason-spice-labels-plain-a4.pdf"
+        : `mason-spice-labels-avery-${labelTemplateSelect.value}.pdf`;
     link.hidden = true;
     document.body.append(link);
     link.click();

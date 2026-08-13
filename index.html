@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Create and download printable spice labels for popular Avery sheets."
+      content="Create printable spice labels for popular Avery sheets or plain A4 paper."
     />
     <title>Spice Label Maker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -32,7 +32,7 @@
         </div>
         <div class="size-note">
           <span class="ruler" aria-hidden="true"></span>
-          <p><strong>6 Avery formats</strong><br />US Letter label sheets</p>
+          <p><strong>7 print formats</strong><br />Avery sheets or plain A4</p>
         </div>
       </section>
 
@@ -42,23 +42,24 @@
             <p class="step">01 — SELECT YOUR SPICES</p>
             <h2 id="maker-title">Create your labels</h2>
           </div>
-          <span id="dimension" class="dimension">2⅝ × 1 in</span>
+          <span id="dimension" class="dimension">60 × 40 mm</span>
         </div>
 
         <form id="label-form" novalidate>
           <div class="format-fields">
             <div class="select-field">
-              <label for="label-template">Avery label sheet</label>
+              <label for="label-template">Label sheet</label>
               <select id="label-template">
-                <option value="5160">5160 · Address (30/sheet)</option>
-                <option value="5163">5163 · Shipping (10/sheet)</option>
-                <option value="5164">5164 · Shipping (6/sheet)</option>
-                <option value="5167">5167 · Return (80/sheet)</option>
-                <option value="5195">5195 · Return (60/sheet)</option>
-                <option value="22822">22822 · Rectangle (8/sheet)</option>
+                <option value="plain-a4">Plain A4 · Original (18/sheet)</option>
+                <option value="l7159">L7159 · Address (24/sheet)</option>
+                <option value="l7160">L7160 · Address (21/sheet)</option>
+                <option value="l7161">L7161 · Address (18/sheet)</option>
+                <option value="l7162">L7162 · Address (16/sheet)</option>
+                <option value="l7163">L7163 · Address (14/sheet)</option>
+                <option value="l7165">L7165 · Parcel (8/sheet)</option>
               </select>
               <p id="template-note" class="field-note">
-                2⅝ × 1 in · 3 columns × 10 rows
+                60 × 40 mm · 3 columns × 6 rows · 18 per sheet
               </p>
             </div>
 
@@ -122,13 +123,15 @@
           </button>
         </form>
 
-        <p class="print-tip">
+        <p id="print-tip" class="print-tip">
           <span aria-hidden="true">●</span>
-          US Letter · Matches the selected Avery sheet · Print at 100% scale.
+          <span id="print-tip-text">
+            A4 plain paper · 2 mm cut guides · Print at 100% scale.
+          </span>
         </p>
       </section>
     </main>
 
-    <script src="app.js?v=20260813-4"></script>
+    <script src="app.js?v=20260813-5"></script>
   </body>
 </html>
