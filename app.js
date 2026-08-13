@@ -218,6 +218,7 @@ function createSpiceOption(name) {
 function addCustomSpice() {
   const name = customSpiceInput.value.trim();
   const inputs = [...document.querySelectorAll('input[name="spice"]')];
+  message.classList.remove("success");
 
   if (!name) {
     message.textContent = "Enter a spice name to add it.";
@@ -253,6 +254,7 @@ function updateSelection() {
   const count = spices.length;
 
   selectionCount.textContent = `${count} ${count === 1 ? "LABEL" : "LABELS"} SELECTED`;
+  message.classList.remove("success");
   message.textContent = "";
   previewGrid.replaceChildren();
 
@@ -277,6 +279,7 @@ function updateSelection() {
 spiceOptions.addEventListener("change", updateSelection);
 addSpiceButton.addEventListener("click", addCustomSpice);
 customSpiceInput.addEventListener("input", () => {
+  message.classList.remove("success");
   message.textContent = "";
 });
 customSpiceInput.addEventListener("keydown", (event) => {
@@ -289,6 +292,7 @@ customSpiceInput.addEventListener("keydown", (event) => {
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   const spices = selectedSpices();
+  message.classList.remove("success");
 
   if (spices.length === 0) {
     message.textContent = "Select at least one spice to create a label sheet.";
@@ -296,13 +300,25 @@ form.addEventListener("submit", (event) => {
     return;
   }
 
-  const downloadUrl = URL.createObjectURL(createPdf(spices));
-  const link = document.createElement("a");
-  link.href = downloadUrl;
-  link.download = "mason-spice-labels.pdf";
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-  message.textContent = "";
+  try {
+    const pdf = createPdf(spices);
+    const downloadUrl = URL.createObjectURL(pdf);
+    const link = document.createElement("a");
+
+    link.href = downloadUrl;
+    link.download = "mason-spice-labels.pdf";
+    link.hidden = true;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(downloadUrl), 60000);
+    message.classList.add("success");
+    message.textContent = "PDF generated. Check your downloads.";
+  } catch (error) {
+    console.error("Unable to generate the PDF.", error);
+    message.classList.remove("success");
+    message.textContent = "The PDF could not be generated. Please try again.";
+  }
 });
 
 document.fonts.ready.then(updateSelection);
