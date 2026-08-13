@@ -266,6 +266,68 @@ form {
   outline-offset: 2px;
 }
 
+.custom-spice {
+  margin-top: 22px;
+}
+
+.custom-spice label {
+  display: block;
+  margin-bottom: 9px;
+  font-size: 0.77rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.custom-spice-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 9px;
+}
+
+.custom-spice input {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  outline: 0;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.28);
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 0.98rem;
+}
+
+.custom-spice input::placeholder {
+  color: #a09c91;
+}
+
+.custom-spice input:focus {
+  border-color: var(--terracotta);
+  box-shadow: 0 0 0 3px rgba(182, 91, 63, 0.12);
+}
+
+.add-spice-button {
+  padding: 0 20px;
+  border: 1px solid var(--sage-dark);
+  border-radius: 2px;
+  color: var(--sage-dark);
+  background: transparent;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.add-spice-button:hover {
+  color: #fffdf8;
+  background: var(--sage-dark);
+}
+
+.add-spice-button:focus-visible {
+  outline: 3px solid rgba(182, 91, 63, 0.3);
+  outline-offset: 2px;
+}
+
 .preview-section {
   margin-top: 34px;
 }
@@ -279,19 +341,34 @@ form {
 }
 
 .preview-stage {
-  padding: 28px clamp(24px, 5vw, 52px);
+  padding: 20px;
   border: 1px dashed rgba(53, 67, 50, 0.25);
   background:
     linear-gradient(45deg, rgba(96, 112, 90, 0.035) 25%, transparent 25%) 0 0 / 12px 12px,
     linear-gradient(-45deg, rgba(96, 112, 90, 0.035) 25%, transparent 25%) 0 0 / 12px 12px;
 }
 
-canvas {
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.preview-grid canvas {
   display: block;
   width: 100%;
   height: auto;
   border-radius: 2px;
-  box-shadow: 0 10px 24px rgba(32, 32, 25, 0.14);
+  box-shadow: 0 7px 16px rgba(32, 32, 25, 0.13);
+}
+
+.empty-preview {
+  grid-column: 1 / -1;
+  margin: 20px 0;
+  color: #8a867b;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 0.9rem;
+  text-align: center;
 }
 
 .form-message {
@@ -301,7 +378,7 @@ canvas {
   font-size: 0.72rem;
 }
 
-button {
+#download-button {
   width: 100%;
   margin-top: 4px;
   padding: 17px 18px;
@@ -323,12 +400,12 @@ button {
     transform 180ms ease;
 }
 
-button:hover {
+#download-button:hover {
   background: var(--terracotta);
   transform: translateY(-1px);
 }
 
-button:focus-visible {
+#download-button:focus-visible {
   outline: 3px solid rgba(182, 91, 63, 0.3);
   outline-offset: 3px;
 }
@@ -397,7 +474,11 @@ button:focus-visible {
   }
 
   .preview-stage {
-    padding: 22px;
+    padding: 14px;
+  }
+
+  .preview-grid {
+    grid-template-columns: 1fr;
   }
 }
 

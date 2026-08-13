@@ -1,9 +1,13 @@
 const form = document.querySelector("#label-form");
-const spiceInputs = [...document.querySelectorAll('input[name="spice"]')];
+const spiceOptions = document.querySelector("#spice-options");
+const customSpiceInput = document.querySelector("#custom-spice");
+const addSpiceButton = document.querySelector("#add-spice-button");
 const selectionCount = document.querySelector("#selection-count");
 const message = document.querySelector("#form-message");
-const canvas = document.querySelector("#label-canvas");
-const context = canvas.getContext("2d");
+const previewGrid = document.querySelector("#preview-grid");
+const renderCanvas = document.createElement("canvas");
+renderCanvas.width = 900;
+renderCanvas.height = 600;
 
 const PAGE_WIDTH = 595.2756;
 const PAGE_HEIGHT = 841.8898;
@@ -12,8 +16,9 @@ const LABEL_HEIGHT = 113.3858;
 const PAGE_MARGIN = 56.6929;
 const CUT_OFFSET = 5.6693;
 const GRID_COLUMNS = 3;
+const MAX_LABELS = 18;
 
-function fitText(text, maxWidth, startingSize) {
+function fitText(context, text, maxWidth, startingSize) {
   let size = startingSize;
 
   do {
@@ -27,7 +32,8 @@ function fitText(text, maxWidth, startingSize) {
   return size;
 }
 
-function drawLabel(name = "") {
+function drawLabel(canvas, name = "") {
+  const context = canvas.getContext("2d");
   const displayName = name.trim() || "Your Spice";
 
   context.fillStyle = "#fffaf0";
@@ -53,7 +59,7 @@ function drawLabel(name = "") {
   context.arc(canvas.width / 2, 176, 5, 0, Math.PI * 2);
   context.fill();
 
-  const fontSize = fitText(displayName, canvas.width - 145, 112);
+  const fontSize = fitText(context, displayName, canvas.width - 145, 112);
   context.fillStyle = name.trim() ? "#202019" : "#8d887d";
   context.font = `700 ${fontSize}px Fraunces, Georgia, serif`;
   context.letterSpacing = "0px";
@@ -102,8 +108,8 @@ function dataUrlToBytes(dataUrl) {
 
 function createPdf(spiceNames) {
   const imageBytes = spiceNames.map((name) => {
-    drawLabel(name);
-    return dataUrlToBytes(canvas.toDataURL("image/jpeg", 0.96));
+    drawLabel(renderCanvas, name);
+    return dataUrlToBytes(renderCanvas.toDataURL("image/jpeg", 0.96));
   });
   const imageResources = spiceNames
     .map((_, index) => `/Img${index + 1} ${index + 4} 0 R`)
@@ -138,7 +144,7 @@ function createPdf(spiceNames) {
     ...imageBytes.map((bytes) =>
       joinBytes([
         ascii(
-          `<< /Type /XObject /Subtype /Image /Width ${canvas.width} /Height ${canvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${bytes.length} >>\nstream\n`,
+          `<< /Type /XObject /Subtype /Image /Width ${renderCanvas.width} /Height ${renderCanvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${bytes.length} >>\nstream\n`,
         ),
         bytes,
         ascii("\nendstream"),
@@ -181,7 +187,65 @@ function createPdf(spiceNames) {
 }
 
 function selectedSpices() {
-  return spiceInputs.filter((input) => input.checked).map((input) => input.value);
+  return [...document.querySelectorAll('input[name="spice"]:checked')].map(
+    (input) => input.value,
+  );
+}
+
+function createSpiceOption(name) {
+  const label = document.createElement("label");
+  const input = document.createElement("input");
+  const content = document.createElement("span");
+  const checkmark = document.createElement("span");
+  const spiceName = document.createElement("span");
+
+  label.className = "spice-option";
+  input.type = "checkbox";
+  input.name = "spice";
+  input.value = name;
+  input.checked = true;
+  content.className = "option-content";
+  checkmark.className = "checkmark";
+  checkmark.setAttribute("aria-hidden", "true");
+  checkmark.textContent = "✓";
+  spiceName.textContent = name;
+  content.append(checkmark, spiceName);
+  label.append(input, content);
+
+  return label;
+}
+
+function addCustomSpice() {
+  const name = customSpiceInput.value.trim();
+  const inputs = [...document.querySelectorAll('input[name="spice"]')];
+
+  if (!name) {
+    message.textContent = "Enter a spice name to add it.";
+    customSpiceInput.focus();
+    return;
+  }
+
+  const existing = inputs.find(
+    (input) => input.value.toLowerCase() === name.toLowerCase(),
+  );
+
+  if (existing) {
+    existing.checked = true;
+    customSpiceInput.value = "";
+    updateSelection();
+    existing.focus();
+    return;
+  }
+
+  if (inputs.length >= MAX_LABELS) {
+    message.textContent = `An A4 sheet can hold up to ${MAX_LABELS} labels.`;
+    return;
+  }
+
+  spiceOptions.append(createSpiceOption(name));
+  customSpiceInput.value = "";
+  updateSelection();
+  customSpiceInput.focus();
 }
 
 function updateSelection() {
@@ -190,10 +254,37 @@ function updateSelection() {
 
   selectionCount.textContent = `${count} ${count === 1 ? "LABEL" : "LABELS"} SELECTED`;
   message.textContent = "";
-  drawLabel(spices[0] || "");
+  previewGrid.replaceChildren();
+
+  if (count === 0) {
+    const emptyMessage = document.createElement("p");
+    emptyMessage.className = "empty-preview";
+    emptyMessage.textContent = "Select a spice to preview its label.";
+    previewGrid.append(emptyMessage);
+    return;
+  }
+
+  spices.forEach((name) => {
+    const previewCanvas = document.createElement("canvas");
+    previewCanvas.width = 900;
+    previewCanvas.height = 600;
+    previewCanvas.setAttribute("aria-label", `${name} label preview`);
+    drawLabel(previewCanvas, name);
+    previewGrid.append(previewCanvas);
+  });
 }
 
-spiceInputs.forEach((input) => input.addEventListener("change", updateSelection));
+spiceOptions.addEventListener("change", updateSelection);
+addSpiceButton.addEventListener("click", addCustomSpice);
+customSpiceInput.addEventListener("input", () => {
+  message.textContent = "";
+});
+customSpiceInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    addCustomSpice();
+  }
+});
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -201,7 +292,7 @@ form.addEventListener("submit", (event) => {
 
   if (spices.length === 0) {
     message.textContent = "Select at least one spice to create a label sheet.";
-    spiceInputs[0].focus();
+    document.querySelector('input[name="spice"]').focus();
     return;
   }
 
@@ -212,7 +303,6 @@ form.addEventListener("submit", (event) => {
   link.click();
   setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
   message.textContent = "";
-  drawLabel(spices[0]);
 });
 
 document.fonts.ready.then(updateSelection);

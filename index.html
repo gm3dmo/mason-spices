@@ -48,7 +48,7 @@
         <form id="label-form" novalidate>
           <fieldset class="spice-picker">
             <legend>Spices to include</legend>
-            <div class="spice-options">
+            <div id="spice-options" class="spice-options">
               <label class="spice-option">
                 <input type="checkbox" name="spice" value="Cumin Powder" checked />
                 <span class="option-content">
@@ -73,18 +73,29 @@
             </div>
           </fieldset>
 
+          <div class="custom-spice">
+            <label for="custom-spice">Add your own spice</label>
+            <div class="custom-spice-row">
+              <input
+                id="custom-spice"
+                type="text"
+                maxlength="32"
+                autocomplete="off"
+                placeholder="e.g. Garam Masala"
+              />
+              <button id="add-spice-button" class="add-spice-button" type="button">
+                Add
+              </button>
+            </div>
+          </div>
+
           <div class="preview-section">
             <div class="preview-heading">
               <span>PREVIEW</span>
               <span id="selection-count">3 LABELS SELECTED</span>
             </div>
             <div class="preview-stage">
-              <canvas
-                id="label-canvas"
-                width="900"
-                height="600"
-                aria-label="Preview of your spice label"
-              ></canvas>
+              <div id="preview-grid" class="preview-grid"></div>
             </div>
           </div>
 
