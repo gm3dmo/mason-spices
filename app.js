@@ -11,6 +11,8 @@ const previewGrid = document.querySelector("#preview-grid");
 const dimension = document.querySelector("#dimension");
 const templateNote = document.querySelector("#template-note");
 const printTipText = document.querySelector("#print-tip-text");
+const jarLabelFront = document.querySelector("#jar-label-front");
+const jarLabelTag = document.querySelector("#jar-label-tag");
 const renderCanvas = document.createElement("canvas");
 
 const POINTS_PER_INCH = 72;
@@ -769,6 +771,22 @@ function updateTemplateDetails(template) {
     : "A4 · Matches the selected Avery sheet · Print at 100% scale.";
 }
 
+function updateJarMockups(template, borderStyle, heading, spices) {
+  const mockupNames =
+    spices.length >= 2
+      ? spices.slice(0, 2)
+      : [spices[0] || "Turmeric", "Rosemary"];
+
+  [jarLabelFront, jarLabelTag].forEach((canvas, index) => {
+    sizeCanvas(canvas, template);
+    canvas.setAttribute(
+      "aria-label",
+      `${mockupNames[index]} label shown on a spice jar`,
+    );
+    drawLabel(canvas, mockupNames[index], heading, borderStyle, template);
+  });
+}
+
 function updateSelection() {
   const spices = selectedSpices();
   const count = spices.length;
@@ -779,6 +797,7 @@ function updateSelection() {
   const sheets = Math.max(1, Math.ceil(count / capacity));
 
   updateTemplateDetails(template);
+  updateJarMockups(template, borderStyle, heading, spices);
   selectionCount.textContent =
     count === 0
       ? "NO LABELS SELECTED"

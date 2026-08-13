@@ -382,6 +382,171 @@ form {
   outline-offset: 2px;
 }
 
+.jar-showcase {
+  margin-top: 34px;
+}
+
+.jar-scene {
+  min-height: 355px;
+  padding: 28px 24px 20px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(53, 67, 50, 0.16);
+  background:
+    radial-gradient(circle at 25% 18%, rgba(255, 255, 255, 0.9), transparent 25%),
+    linear-gradient(180deg, #ddd7c8 0 70%, #b9a98e 70% 73%, #d8cbb4 73%);
+  box-shadow: inset 0 18px 35px rgba(255, 255, 255, 0.34);
+}
+
+.jar-example {
+  min-width: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: end;
+}
+
+.jar-example figcaption {
+  margin-top: 14px;
+  color: #625f55;
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.jar {
+  position: relative;
+  width: 150px;
+  height: 250px;
+  filter: drop-shadow(0 18px 13px rgba(32, 32, 25, 0.24));
+}
+
+.jar-round {
+  width: 164px;
+  height: 232px;
+}
+
+.jar-lid {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  left: 8%;
+  width: 84%;
+  height: 42px;
+  border: 1px solid #716d59;
+  border-radius: 12px 12px 7px 7px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 5px,
+      rgba(55, 52, 43, 0.3) 5px 7px
+    ),
+    linear-gradient(#c2b986, #8d865f 50%, #b8ae7c);
+  box-shadow:
+    inset 0 7px rgba(255, 255, 255, 0.22),
+    0 3px 4px rgba(32, 32, 25, 0.26);
+}
+
+.jar-glass {
+  position: absolute;
+  inset: 30px 5% 0;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.65);
+  border-radius: 25px 25px 35px 35px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.48),
+      transparent 22% 72%,
+      rgba(255, 255, 255, 0.24)
+    ),
+    var(--spice-fill);
+  box-shadow:
+    inset 8px 0 12px rgba(255, 255, 255, 0.16),
+    inset -8px 0 14px rgba(32, 32, 25, 0.17);
+}
+
+.jar-spice-gold {
+  --spice-fill: linear-gradient(#c99131 10%, #dca42f 42%, #a8661f);
+}
+
+.jar-spice-green {
+  --spice-fill:
+    radial-gradient(ellipse at 20% 30%, #87915b 0 4px, transparent 5px),
+    radial-gradient(ellipse at 70% 60%, #667446 0 5px, transparent 6px),
+    linear-gradient(#758151, #4d5b38);
+  background-size:
+    20px 24px,
+    24px 28px,
+    auto;
+}
+
+.jar-label-front {
+  position: absolute;
+  z-index: 3;
+  top: 43%;
+  left: 50%;
+  width: 78%;
+  height: auto;
+  max-height: 42%;
+  transform: translate(-50%, -50%);
+  border-radius: 2px;
+  box-shadow: 0 5px 9px rgba(32, 32, 25, 0.23);
+}
+
+.jar-string {
+  position: absolute;
+  z-index: 6;
+  top: 28px;
+  right: 2px;
+  width: 75px;
+  height: 82px;
+  border-right: 3px solid #262720;
+  border-bottom: 3px solid #262720;
+  border-radius: 0 0 38px;
+  transform: rotate(8deg);
+}
+
+.jar-tag {
+  position: absolute;
+  z-index: 7;
+  top: 82px;
+  right: -52px;
+  width: 105px;
+  height: 154px;
+  padding: 35px 10px 14px;
+  display: flex;
+  align-items: center;
+  background: #a9845d;
+  clip-path: polygon(50% 0, 100% 18%, 100% 100%, 0 100%, 0 18%);
+  box-shadow: 0 10px 18px rgba(32, 32, 25, 0.24);
+  transform: rotate(4deg);
+}
+
+.tag-hole {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  width: 13px;
+  height: 13px;
+  border: 3px solid #80613f;
+  border-radius: 50%;
+  background: #d8cbb4;
+  transform: translateX(-50%);
+}
+
+.jar-label-tag {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  box-shadow: 0 3px 7px rgba(32, 32, 25, 0.22);
+}
+
 .preview-section {
   margin-top: 34px;
 }
@@ -538,6 +703,20 @@ form {
 
   .preview-stage {
     padding: 14px;
+  }
+
+  .jar-scene {
+    min-height: 330px;
+    padding-inline: 8px;
+    gap: 4px;
+  }
+
+  .jar {
+    transform: scale(0.86);
+  }
+
+  .jar-tag {
+    right: -34px;
   }
 
   .preview-grid {
