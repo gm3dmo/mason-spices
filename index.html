@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260813-1" />
+    <link rel="stylesheet" href="styles.css?v=20260813-2" />
   </head>
   <body>
     <main class="shell">
@@ -46,6 +46,17 @@
         </div>
 
         <form id="label-form" novalidate>
+          <div class="heading-field">
+            <label for="label-heading">Label heading</label>
+            <input
+              id="label-heading"
+              type="text"
+              maxlength="32"
+              value="MASON'S FINE SPICES"
+              autocomplete="off"
+            />
+          </div>
+
           <fieldset class="spice-picker">
             <legend>Spices to include</legend>
             <div id="spice-options" class="spice-options">
@@ -113,6 +124,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=20260813-1"></script>
+    <script src="app.js?v=20260813-2"></script>
   </body>
 </html>

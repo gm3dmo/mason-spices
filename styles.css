@@ -188,16 +188,35 @@ form {
 }
 
 .spice-picker {
-  margin: 0;
+  margin: 24px 0 0;
   padding: 0;
   border: 0;
 }
 
+.heading-field label,
 .spice-picker legend {
+  display: block;
   margin-bottom: 12px;
   font-size: 0.77rem;
   font-weight: 600;
   letter-spacing: 0.05em;
+}
+
+.heading-field input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  outline: 0;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.28);
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 0.98rem;
+}
+
+.heading-field input:focus {
+  border-color: var(--terracotta);
+  box-shadow: 0 0 0 3px rgba(182, 91, 63, 0.12);
 }
 
 .spice-options {

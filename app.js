@@ -1,4 +1,5 @@
 const form = document.querySelector("#label-form");
+const labelHeadingInput = document.querySelector("#label-heading");
 const spiceOptions = document.querySelector("#spice-options");
 const customSpiceInput = document.querySelector("#custom-spice");
 const addSpiceButton = document.querySelector("#add-spice-button");
@@ -18,23 +19,32 @@ const CUT_OFFSET = 5.6693;
 const GRID_COLUMNS = 3;
 const MAX_LABELS = 18;
 
-function fitText(context, text, maxWidth, startingSize) {
+function fitText(
+  context,
+  text,
+  maxWidth,
+  startingSize,
+  minimumSize = 54,
+  fontFamily = "Fraunces, Georgia, serif",
+  fontWeight = 700,
+) {
   let size = startingSize;
 
   do {
-    context.font = `700 ${size}px Fraunces, Georgia, serif`;
+    context.font = `${fontWeight} ${size}px ${fontFamily}`;
     if (context.measureText(text).width <= maxWidth) {
       return size;
     }
     size -= 2;
-  } while (size > 54);
+  } while (size > minimumSize);
 
   return size;
 }
 
-function drawLabel(canvas, name = "") {
+function drawLabel(canvas, name = "", heading = "MASON'S FINE SPICES") {
   const context = canvas.getContext("2d");
   const displayName = name.trim() || "Your Spice";
+  const displayHeading = heading.trim() || "MASON'S FINE SPICES";
 
   context.fillStyle = "#fffaf0";
   context.fillRect(0, 0, canvas.width, canvas.height);
@@ -50,9 +60,19 @@ function drawLabel(canvas, name = "") {
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.fillStyle = "#b65b3f";
-  context.font = "600 23px DM Sans, Arial, sans-serif";
   context.letterSpacing = "7px";
-  context.fillText("MASON'S FINE SPICES", canvas.width / 2, 122);
+  const headingFont = "DM Sans, Arial, sans-serif";
+  const headingSize = fitText(
+    context,
+    displayHeading,
+    canvas.width - 150,
+    23,
+    12,
+    headingFont,
+    600,
+  );
+  context.font = `600 ${headingSize}px ${headingFont}`;
+  context.fillText(displayHeading, canvas.width / 2, 122);
 
   context.fillStyle = "#354332";
   context.beginPath();
@@ -106,9 +126,9 @@ function dataUrlToBytes(dataUrl) {
   return bytes;
 }
 
-function createPdf(spiceNames) {
+function createPdf(spiceNames, heading) {
   const imageBytes = spiceNames.map((name) => {
-    drawLabel(renderCanvas, name);
+    drawLabel(renderCanvas, name, heading);
     return dataUrlToBytes(renderCanvas.toDataURL("image/jpeg", 0.96));
   });
   const imageResources = spiceNames
@@ -252,6 +272,7 @@ function addCustomSpice() {
 function updateSelection() {
   const spices = selectedSpices();
   const count = spices.length;
+  const heading = labelHeadingInput.value;
 
   selectionCount.textContent = `${count} ${count === 1 ? "LABEL" : "LABELS"} SELECTED`;
   message.classList.remove("success");
@@ -271,12 +292,13 @@ function updateSelection() {
     previewCanvas.width = 900;
     previewCanvas.height = 600;
     previewCanvas.setAttribute("aria-label", `${name} label preview`);
-    drawLabel(previewCanvas, name);
+    drawLabel(previewCanvas, name, heading);
     previewGrid.append(previewCanvas);
   });
 }
 
 spiceOptions.addEventListener("change", updateSelection);
+labelHeadingInput.addEventListener("input", updateSelection);
 addSpiceButton.addEventListener("click", addCustomSpice);
 customSpiceInput.addEventListener("input", () => {
   message.classList.remove("success");
@@ -301,7 +323,7 @@ form.addEventListener("submit", (event) => {
   }
 
   try {
-    const pdf = createPdf(spices);
+    const pdf = createPdf(spices, labelHeadingInput.value);
     const downloadUrl = URL.createObjectURL(pdf);
     const link = document.createElement("a");
 
