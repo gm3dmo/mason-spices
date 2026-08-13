@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Create and download a printable 6 cm by 4 cm spice label."
+      content="Create printable spice labels for popular Avery sheets or plain A4 paper."
     />
     <title>Spice Label Maker</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260813-2" />
+    <link rel="stylesheet" href="styles.css?v=20260813-9" />
   </head>
   <body>
     <main class="shell">
@@ -27,12 +27,12 @@
           <p class="eyebrow">PANTRY, BEAUTIFULLY ORDERED</p>
           <h1 id="page-title">Label your<br /><em>flavour.</em></h1>
           <p class="lede">
-            Create a crisp, print-ready label sized precisely for your spice jars.
+            Create crisp, print-ready labels sized for popular Avery sheets.
           </p>
         </div>
         <div class="size-note">
           <span class="ruler" aria-hidden="true"></span>
-          <p><strong>6 × 4 cm</strong><br />Exact label dimensions</p>
+          <p><strong>8 print formats</strong><br />Avery sheets or plain A4</p>
         </div>
       </section>
 
@@ -42,35 +42,44 @@
             <p class="step">01 — SELECT YOUR SPICES</p>
             <h2 id="maker-title">Create your labels</h2>
           </div>
-          <span class="dimension">60 × 40 mm</span>
+          <span id="dimension" class="dimension">60 × 40 mm</span>
         </div>
 
         <form id="label-form" novalidate>
-          <fieldset class="print-target">
-            <legend>Print target</legend>
-            <div class="print-target-options">
-              <label class="target-option">
-                <input type="radio" name="print-target" value="laser" checked />
-                <span class="target-content">
-                  <span class="radio-mark" aria-hidden="true"></span>
-                  <span>
-                    <strong>A4 Laser</strong>
-                    <small>6 × 4 cm labels with cut guides</small>
-                  </span>
-                </span>
-              </label>
-              <label class="target-option">
-                <input type="radio" name="print-target" value="avery" />
-                <span class="target-content">
-                  <span class="radio-mark" aria-hidden="true"></span>
-                  <span>
-                    <strong>Avery L4774-20</strong>
-                    <small>Pre-cut · 4 labels per sheet</small>
-                  </span>
-                </span>
-              </label>
+          <div class="format-fields">
+            <div class="select-field">
+              <label for="label-template">Label sheet</label>
+              <select id="label-template">
+                <option value="plain-a4">Plain A4 · Original (18/sheet)</option>
+                <option value="l7159">L7159 · Address (24/sheet)</option>
+                <option value="l7160">L7160 · Address (21/sheet)</option>
+                <option value="l7161">L7161 · Address (18/sheet)</option>
+                <option value="l7162">L7162 · Address (16/sheet)</option>
+                <option value="l7163">L7163 · Address (14/sheet)</option>
+                <option value="l7165">L7165 · Parcel (8/sheet)</option>
+                <option value="l4774">L4774-20 · Heavy duty (4/sheet)</option>
+              </select>
+              <p id="template-note" class="field-note">
+                60 × 40 mm · 3 columns × 6 rows · 18 per sheet
+              </p>
             </div>
-          </fieldset>
+
+            <div class="select-field">
+              <label for="border-style">Border style</label>
+              <select id="border-style">
+                <option value="classic">Classic double</option>
+                <option value="simple">Simple frame</option>
+                <option value="corners">Decorative corners</option>
+                <option value="dotted">Dotted edge</option>
+                <option value="flowers">Wildflowers</option>
+                <option value="hearts">Little hearts</option>
+                <option value="herbs">Herb sprigs</option>
+                <option value="peppercorns">Peppercorn clusters</option>
+                <option value="vines">Leafy vines</option>
+                <option value="starbursts">Starbursts</option>
+              </select>
+            </div>
+          </div>
 
           <div class="heading-field">
             <label for="label-heading">Label heading</label>
@@ -121,13 +130,15 @@
           </button>
         </form>
 
-        <p class="print-tip">
-          <span class="tip-dot" aria-hidden="true">●</span>
-          <span id="print-tip-text">A4 portrait · 2 mm cut guides · Print at 100% scale.</span>
+        <p id="print-tip" class="print-tip">
+          <span aria-hidden="true">●</span>
+          <span id="print-tip-text">
+            A4 plain paper · 2 mm cut guides · Print at 100% scale.
+          </span>
         </p>
       </section>
     </main>
 
-    <script src="app.js?v=20260813-5"></script>
+    <script src="app.js?v=20260813-9"></script>
   </body>
 </html>
