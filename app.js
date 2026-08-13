@@ -125,6 +125,21 @@ const LABEL_TEMPLATES = {
     size: "99.1 × 67.7 mm",
     paper: "A4",
   },
+  l4774: {
+    name: "Avery L4774-20",
+    width: 139 / 25.4,
+    height: 99.1 / 25.4,
+    columns: 2,
+    rows: 2,
+    left: 9.5 / 25.4,
+    top: 4.63 / 25.4,
+    horizontalPitch: 139 / 25.4,
+    verticalPitch: 101.64 / 25.4,
+    pageWidth: A4_HEIGHT,
+    pageHeight: A4_WIDTH,
+    size: "139 × 99.1 mm",
+    paper: "A4 landscape",
+  },
 };
 const DEFAULT_SPICES = [
   "Cumin Powder",
@@ -139,6 +154,7 @@ const DEFAULT_SPICES = [
   "Cinnamon Sticks",
   "Ground Cumin",
   "Sesame Seeds",
+  "Nutritional Yeast",
 ];
 
 function currentTemplate() {
@@ -766,7 +782,7 @@ function updateTemplateDetails(template) {
   templateNote.textContent = `${template.size} · ${template.columns} columns × ${template.rows} rows · ${capacity} per sheet`;
   printTipText.textContent = template.cutOffset
     ? "A4 plain paper · 2 mm cut guides · Print at 100% scale."
-    : "A4 · Matches the selected Avery sheet · Print at 100% scale.";
+    : `${template.paper} · Matches the selected Avery sheet · Print at 100% scale.`;
 }
 
 function updateSelection() {
