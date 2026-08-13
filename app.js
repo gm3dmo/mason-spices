@@ -184,6 +184,177 @@ function drawCorner(context, x, y, size, horizontalDirection, verticalDirection)
   context.fill();
 }
 
+function drawLeaf(context, x, y, size, angle) {
+  context.save();
+  context.translate(x, y);
+  context.rotate(angle);
+  context.beginPath();
+  context.moveTo(0, 0);
+  context.quadraticCurveTo(size * 0.55, -size * 0.42, size, 0);
+  context.quadraticCurveTo(size * 0.55, size * 0.42, 0, 0);
+  context.fill();
+  context.restore();
+}
+
+function drawFlower(context, x, y, size) {
+  for (let petal = 0; petal < 6; petal += 1) {
+    const angle = (Math.PI * 2 * petal) / 6;
+    context.beginPath();
+    context.arc(
+      x + Math.cos(angle) * size * 0.42,
+      y + Math.sin(angle) * size * 0.42,
+      size * 0.3,
+      0,
+      Math.PI * 2,
+    );
+    context.fill();
+  }
+
+  context.fillStyle = "#354332";
+  context.beginPath();
+  context.arc(x, y, size * 0.22, 0, Math.PI * 2);
+  context.fill();
+}
+
+function drawHeart(context, x, y, size) {
+  context.beginPath();
+  context.moveTo(x, y + size * 0.35);
+  context.bezierCurveTo(
+    x - size,
+    y - size * 0.25,
+    x - size * 0.55,
+    y - size,
+    x,
+    y - size * 0.42,
+  );
+  context.bezierCurveTo(
+    x + size * 0.55,
+    y - size,
+    x + size,
+    y - size * 0.25,
+    x,
+    y + size * 0.35,
+  );
+  context.fill();
+}
+
+function drawCornerMotif(context, width, height, motif) {
+  const shortSide = Math.min(width, height);
+  const inset = shortSide * 0.07;
+  const size = shortSide * 0.075;
+  const lineWidth = Math.max(2, shortSide * 0.005);
+  const corners = [
+    [inset, inset, 1, 1],
+    [width - inset, inset, -1, 1],
+    [inset, height - inset, 1, -1],
+    [width - inset, height - inset, -1, -1],
+  ];
+
+  context.strokeStyle = "#354332";
+  context.fillStyle = "#b65b3f";
+  context.lineWidth = lineWidth;
+  context.lineCap = "round";
+  context.lineJoin = "round";
+  context.setLineDash([]);
+
+  corners.forEach(([x, y, horizontalDirection, verticalDirection]) => {
+    context.save();
+    context.translate(x, y);
+    context.scale(horizontalDirection, verticalDirection);
+
+    if (motif === "flowers") {
+      context.beginPath();
+      context.moveTo(0, size * 1.65);
+      context.quadraticCurveTo(size * 0.45, size, size * 1.25, size * 0.48);
+      context.stroke();
+      drawLeaf(context, size * 0.45, size * 1.05, size * 0.65, -0.5);
+      context.fillStyle = "#b65b3f";
+      drawFlower(context, size * 1.35, size * 0.42, size * 0.55);
+    }
+
+    if (motif === "hearts") {
+      drawHeart(context, size * 0.72, size * 0.75, size * 0.58);
+      context.fillStyle = "#354332";
+      context.beginPath();
+      context.arc(size * 1.55, size * 0.72, size * 0.1, 0, Math.PI * 2);
+      context.fill();
+    }
+
+    if (motif === "herbs") {
+      context.beginPath();
+      context.moveTo(0, size * 1.75);
+      context.lineTo(size * 1.6, size * 0.15);
+      context.stroke();
+      context.fillStyle = "#60705a";
+      drawLeaf(context, size * 0.48, size * 1.22, size * 0.68, -0.78);
+      drawLeaf(context, size * 0.78, size * 0.92, size * 0.68, 2.35);
+      drawLeaf(context, size * 1.08, size * 0.62, size * 0.68, -0.78);
+    }
+
+    if (motif === "peppercorns") {
+      context.beginPath();
+      context.moveTo(0, size * 1.65);
+      context.quadraticCurveTo(size * 0.6, size * 0.7, size * 1.35, size * 0.4);
+      context.stroke();
+      context.fillStyle = "#354332";
+      [
+        [0.95, 0.48],
+        [1.25, 0.72],
+        [1.5, 0.42],
+        [1.45, 0.95],
+        [1.75, 0.72],
+      ].forEach(([pepperX, pepperY]) => {
+        context.beginPath();
+        context.arc(
+          size * pepperX,
+          size * pepperY,
+          size * 0.18,
+          0,
+          Math.PI * 2,
+        );
+        context.fill();
+      });
+    }
+
+    if (motif === "vines") {
+      context.beginPath();
+      context.moveTo(0, size * 1.7);
+      context.bezierCurveTo(
+        size * 0.3,
+        size * 0.7,
+        size * 1.15,
+        size * 1.45,
+        size * 1.65,
+        size * 0.25,
+      );
+      context.stroke();
+      context.fillStyle = "#60705a";
+      drawLeaf(context, size * 0.38, size * 1.12, size * 0.55, -0.5);
+      drawLeaf(context, size * 0.9, size * 1.05, size * 0.55, 2.55);
+      drawLeaf(context, size * 1.3, size * 0.65, size * 0.55, -0.7);
+    }
+
+    if (motif === "starbursts") {
+      context.save();
+      context.translate(size * 0.9, size * 0.82);
+      for (let ray = 0; ray < 8; ray += 1) {
+        context.rotate(Math.PI / 4);
+        context.beginPath();
+        context.moveTo(size * 0.35, 0);
+        context.lineTo(size * 0.72, 0);
+        context.stroke();
+      }
+      context.restore();
+      context.fillStyle = "#b65b3f";
+      context.beginPath();
+      context.arc(size * 0.9, size * 0.82, size * 0.2, 0, Math.PI * 2);
+      context.fill();
+    }
+
+    context.restore();
+  });
+}
+
 function drawBorder(context, width, height, style) {
   const shortSide = Math.min(width, height);
   const outerInset = Math.max(12, shortSide * 0.05);
@@ -195,6 +366,22 @@ function drawBorder(context, width, height, style) {
   context.fillStyle = "#b65b3f";
   context.lineWidth = outerLine;
   context.setLineDash([]);
+
+  if (
+    ["flowers", "hearts", "herbs", "peppercorns", "vines", "starbursts"].includes(
+      style,
+    )
+  ) {
+    context.lineWidth = accentLine;
+    context.strokeRect(
+      innerInset,
+      innerInset,
+      width - innerInset * 2,
+      height - innerInset * 2,
+    );
+    drawCornerMotif(context, width, height, style);
+    return;
+  }
 
   if (style === "simple") {
     context.strokeRect(
