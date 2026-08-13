@@ -64,6 +64,7 @@ const DEFAULT_SPICES = [
   "Cinnamon Sticks",
   "Ground Cumin",
   "Sesame Seeds",
+  "Nutritional Yeast",
 ];
 
 function fitText(
