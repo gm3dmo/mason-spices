@@ -46,6 +46,32 @@
         </div>
 
         <form id="label-form" novalidate>
+          <fieldset class="print-target">
+            <legend>Print target</legend>
+            <div class="print-target-options">
+              <label class="target-option">
+                <input type="radio" name="print-target" value="laser" checked />
+                <span class="target-content">
+                  <span class="radio-mark" aria-hidden="true"></span>
+                  <span>
+                    <strong>A4 Laser</strong>
+                    <small>6 × 4 cm labels with cut guides</small>
+                  </span>
+                </span>
+              </label>
+              <label class="target-option">
+                <input type="radio" name="print-target" value="avery" />
+                <span class="target-content">
+                  <span class="radio-mark" aria-hidden="true"></span>
+                  <span>
+                    <strong>Avery L4774-20</strong>
+                    <small>Pre-cut · 4 labels per sheet</small>
+                  </span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
+
           <div class="heading-field">
             <label for="label-heading">Label heading</label>
             <input
@@ -96,12 +122,12 @@
         </form>
 
         <p class="print-tip">
-          <span aria-hidden="true">●</span>
-          A4 page · 2 mm cut guides · Print at 100% scale.
+          <span class="tip-dot" aria-hidden="true">●</span>
+          <span id="print-tip-text">A4 portrait · 2 mm cut guides · Print at 100% scale.</span>
         </p>
       </section>
     </main>
 
-    <script src="app.js?v=20260813-3"></script>
+    <script src="app.js?v=20260813-4"></script>
   </body>
 </html>

@@ -1,5 +1,7 @@
 const form = document.querySelector("#label-form");
 const labelHeadingInput = document.querySelector("#label-heading");
+const printTargetInputs = [...document.querySelectorAll('input[name="print-target"]')];
+const printTipText = document.querySelector("#print-tip-text");
 const spiceOptions = document.querySelector("#spice-options");
 const customSpiceInput = document.querySelector("#custom-spice");
 const addSpiceButton = document.querySelector("#add-spice-button");
@@ -10,14 +12,45 @@ const renderCanvas = document.createElement("canvas");
 renderCanvas.width = 900;
 renderCanvas.height = 600;
 
-const PAGE_WIDTH = 595.2756;
-const PAGE_HEIGHT = 841.8898;
-const LABEL_WIDTH = 170.0787;
-const LABEL_HEIGHT = 113.3858;
-const PAGE_MARGIN = 56.6929;
-const CUT_OFFSET = 5.6693;
-const GRID_COLUMNS = 3;
 const MAX_LABELS = 18;
+const POINTS_PER_MM = 72 / 25.4;
+const mm = (value) => value * POINTS_PER_MM;
+const PRINT_TARGETS = {
+  laser: {
+    pageWidth: mm(210),
+    pageHeight: mm(297),
+    labelWidth: mm(60),
+    labelHeight: mm(40),
+    marginLeft: mm(20),
+    marginTop: mm(20),
+    horizontalGap: mm(4),
+    verticalGap: mm(4),
+    cutOffset: mm(2),
+    columns: 3,
+    rows: 6,
+    canvasWidth: 900,
+    canvasHeight: 600,
+    filename: "mason-spice-labels-a4.pdf",
+    tip: "A4 portrait · 2 mm cut guides · Print at 100% scale.",
+  },
+  avery: {
+    pageWidth: mm(297),
+    pageHeight: mm(210),
+    labelWidth: mm(139),
+    labelHeight: mm(99.1),
+    marginLeft: mm(9.5),
+    marginTop: mm(4.63),
+    horizontalGap: 0,
+    verticalGap: mm(2.54),
+    cutOffset: 0,
+    columns: 2,
+    rows: 2,
+    canvasWidth: 1000,
+    canvasHeight: 713,
+    filename: "mason-spice-labels-avery-l4774.pdf",
+    tip: "Avery L4774-20 · A4 landscape · Print at 100% scale.",
+  },
+};
 const DEFAULT_SPICES = [
   "Cumin Powder",
   "Cumin Seeds",
@@ -59,57 +92,70 @@ function drawLabel(canvas, name = "", heading = "MASON'S FINE SPICES") {
   const context = canvas.getContext("2d");
   const displayName = name.trim() || "Your Spice";
   const displayHeading = heading.trim() || "MASON'S FINE SPICES";
+  const width = canvas.width;
+  const height = canvas.height;
 
   context.fillStyle = "#fffaf0";
-  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.fillRect(0, 0, width, height);
 
   context.strokeStyle = "#354332";
-  context.lineWidth = 8;
-  context.strokeRect(18, 18, canvas.width - 36, canvas.height - 36);
+  context.lineWidth = width * 0.0089;
+  context.strokeRect(width * 0.02, height * 0.03, width * 0.96, height * 0.94);
 
   context.strokeStyle = "#b65b3f";
-  context.lineWidth = 2;
-  context.strokeRect(31, 31, canvas.width - 62, canvas.height - 62);
+  context.lineWidth = width * 0.0022;
+  context.strokeRect(
+    width * 0.0344,
+    height * 0.0517,
+    width * 0.9312,
+    height * 0.8966,
+  );
 
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.fillStyle = "#b65b3f";
-  context.letterSpacing = "7px";
+  context.letterSpacing = `${width * 0.0078}px`;
   const headingFont = "DM Sans, Arial, sans-serif";
   const headingSize = fitText(
     context,
     displayHeading,
-    canvas.width - 150,
-    23,
-    12,
+    width * 0.8333,
+    width * 0.0256,
+    width * 0.0133,
     headingFont,
     600,
   );
   context.font = `600 ${headingSize}px ${headingFont}`;
-  context.fillText(displayHeading, canvas.width / 2, 122);
+  context.fillText(displayHeading, width / 2, height * 0.2033);
 
   context.fillStyle = "#354332";
   context.beginPath();
-  context.arc(canvas.width / 2, 176, 5, 0, Math.PI * 2);
+  context.arc(width / 2, height * 0.2933, width * 0.0056, 0, Math.PI * 2);
   context.fill();
 
-  const fontSize = fitText(context, displayName, canvas.width - 145, 112);
+  const fontSize = fitText(
+    context,
+    displayName,
+    width * 0.8389,
+    width * 0.1244,
+    width * 0.06,
+  );
   context.fillStyle = name.trim() ? "#202019" : "#8d887d";
   context.font = `700 ${fontSize}px Fraunces, Georgia, serif`;
   context.letterSpacing = "0px";
-  context.fillText(displayName, canvas.width / 2, 315);
+  context.fillText(displayName, width / 2, height * 0.525);
 
   context.strokeStyle = "#b65b3f";
-  context.lineWidth = 3;
+  context.lineWidth = width * 0.0033;
   context.beginPath();
-  context.moveTo(340, 405);
-  context.lineTo(560, 405);
+  context.moveTo(width * 0.3778, height * 0.675);
+  context.lineTo(width * 0.6222, height * 0.675);
   context.stroke();
 
   context.fillStyle = "#60705a";
-  context.font = "600 20px DM Sans, Arial, sans-serif";
-  context.letterSpacing = "6px";
-  context.fillText("PANTRY GOODS", canvas.width / 2, 466);
+  context.font = `600 ${width * 0.0222}px DM Sans, Arial, sans-serif`;
+  context.letterSpacing = `${width * 0.0067}px`;
+  context.fillText("PANTRY GOODS", width / 2, height * 0.7767);
 }
 
 function ascii(value) {
@@ -140,41 +186,75 @@ function dataUrlToBytes(dataUrl) {
   return bytes;
 }
 
-function createPdf(spiceNames, heading) {
+function selectedPrintTarget() {
+  const selected = printTargetInputs.find((input) => input.checked);
+  return PRINT_TARGETS[selected.value];
+}
+
+function createPdf(spiceNames, heading, target) {
+  renderCanvas.width = target.canvasWidth;
+  renderCanvas.height = target.canvasHeight;
   const imageBytes = spiceNames.map((name) => {
     drawLabel(renderCanvas, name, heading);
     return dataUrlToBytes(renderCanvas.toDataURL("image/jpeg", 0.96));
   });
-  const imageResources = spiceNames
-    .map((_, index) => `/Img${index + 1} ${index + 4} 0 R`)
-    .join(" ");
-  const contentObjectId = spiceNames.length + 4;
-  const cutWidth = LABEL_WIDTH + CUT_OFFSET * 2;
-  const cutHeight = LABEL_HEIGHT + CUT_OFFSET * 2;
-  const commands = ["0.25 w", "[2 2] 0 d", "0.65 G"];
+  const labelsPerPage = target.columns * target.rows;
+  const pageCount = Math.ceil(spiceNames.length / labelsPerPage);
+  const imageObjectStart = 3 + pageCount;
+  const contentObjectStart = imageObjectStart + spiceNames.length;
+  const pageContents = Array.from({ length: pageCount }, (_, pageIndex) => {
+    const pageStart = pageIndex * labelsPerPage;
+    const pageEnd = Math.min(pageStart + labelsPerPage, spiceNames.length);
+    const commands = target.cutOffset
+      ? ["0.25 w", "[2 2] 0 d", "0.65 G"]
+      : [];
 
-  spiceNames.forEach((_, index) => {
-    const column = index % GRID_COLUMNS;
-    const row = Math.floor(index / GRID_COLUMNS);
-    const labelLeft = PAGE_MARGIN + column * cutWidth;
-    const labelTop = PAGE_MARGIN + row * cutHeight;
-    const labelBottom = PAGE_HEIGHT - labelTop - LABEL_HEIGHT;
-    const cutLeft = labelLeft - CUT_OFFSET;
-    const cutBottom = labelBottom - CUT_OFFSET;
+    for (let imageIndex = pageStart; imageIndex < pageEnd; imageIndex += 1) {
+      const localIndex = imageIndex - pageStart;
+      const column = localIndex % target.columns;
+      const row = Math.floor(localIndex / target.columns);
+      const labelLeft =
+        target.marginLeft + column * (target.labelWidth + target.horizontalGap);
+      const labelTop =
+        target.marginTop + row * (target.labelHeight + target.verticalGap);
+      const labelBottom = target.pageHeight - labelTop - target.labelHeight;
 
-    commands.push(
-      `${cutLeft} ${cutBottom} ${cutWidth} ${cutHeight} re S`,
-      `q\n${LABEL_WIDTH} 0 0 ${LABEL_HEIGHT} ${labelLeft} ${labelBottom} cm\n/Img${index + 1} Do\nQ`,
+      if (target.cutOffset) {
+        commands.push(
+          `${labelLeft - target.cutOffset} ${labelBottom - target.cutOffset} ${target.labelWidth + target.cutOffset * 2} ${target.labelHeight + target.cutOffset * 2} re S`,
+        );
+      }
+
+      commands.push(
+        `q\n${target.labelWidth} 0 0 ${target.labelHeight} ${labelLeft} ${labelBottom} cm\n/Img${imageIndex + 1} Do\nQ`,
+      );
+    }
+
+    return `${commands.join("\n")}\n`;
+  });
+
+  const pageObjects = pageContents.map((_, pageIndex) => {
+    const pageStart = pageIndex * labelsPerPage;
+    const pageEnd = Math.min(pageStart + labelsPerPage, spiceNames.length);
+    const resources = spiceNames
+      .slice(pageStart, pageEnd)
+      .map(
+        (_, localIndex) =>
+          `/Img${pageStart + localIndex + 1} ${imageObjectStart + pageStart + localIndex} 0 R`,
+      )
+      .join(" ");
+
+    return ascii(
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${target.pageWidth} ${target.pageHeight}] /Resources << /XObject << ${resources} >> >> /Contents ${contentObjectStart + pageIndex} 0 R >>`,
     );
   });
 
-  const content = `${commands.join("\n")}\n`;
   const objects = [
     ascii("<< /Type /Catalog /Pages 2 0 R >>"),
-    ascii("<< /Type /Pages /Kids [3 0 R] /Count 1 >>"),
     ascii(
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /Resources << /XObject << ${imageResources} >> >> /Contents ${contentObjectId} 0 R >>`,
+      `<< /Type /Pages /Kids [${pageObjects.map((_, index) => `${index + 3} 0 R`).join(" ")}] /Count ${pageCount} >>`,
     ),
+    ...pageObjects,
     ...imageBytes.map((bytes) =>
       joinBytes([
         ascii(
@@ -184,7 +264,9 @@ function createPdf(spiceNames, heading) {
         ascii("\nendstream"),
       ]),
     ),
-    ascii(`<< /Length ${ascii(content).length} >>\nstream\n${content}endstream`),
+    ...pageContents.map((content) =>
+      ascii(`<< /Length ${ascii(content).length} >>\nstream\n${content}endstream`),
+    ),
   ];
 
   const parts = [ascii("%PDF-1.4\n%PDFLABEL\n")];
@@ -287,8 +369,10 @@ function updateSelection() {
   const spices = selectedSpices();
   const count = spices.length;
   const heading = labelHeadingInput.value;
+  const target = selectedPrintTarget();
 
   selectionCount.textContent = `${count} ${count === 1 ? "LABEL" : "LABELS"} SELECTED`;
+  printTipText.textContent = target.tip;
   message.classList.remove("success");
   message.textContent = "";
   previewGrid.replaceChildren();
@@ -303,8 +387,8 @@ function updateSelection() {
 
   spices.forEach((name) => {
     const previewCanvas = document.createElement("canvas");
-    previewCanvas.width = 900;
-    previewCanvas.height = 600;
+    previewCanvas.width = target.canvasWidth;
+    previewCanvas.height = target.canvasHeight;
     previewCanvas.setAttribute("aria-label", `${name} label preview`);
     drawLabel(previewCanvas, name, heading);
     previewGrid.append(previewCanvas);
@@ -313,6 +397,7 @@ function updateSelection() {
 
 spiceOptions.append(...DEFAULT_SPICES.map(createSpiceOption));
 spiceOptions.addEventListener("change", updateSelection);
+printTargetInputs.forEach((input) => input.addEventListener("change", updateSelection));
 labelHeadingInput.addEventListener("input", updateSelection);
 addSpiceButton.addEventListener("click", addCustomSpice);
 customSpiceInput.addEventListener("input", () => {
@@ -338,12 +423,13 @@ form.addEventListener("submit", (event) => {
   }
 
   try {
-    const pdf = createPdf(spices, labelHeadingInput.value);
+    const target = selectedPrintTarget();
+    const pdf = createPdf(spices, labelHeadingInput.value, target);
     const downloadUrl = URL.createObjectURL(pdf);
     const link = document.createElement("a");
 
     link.href = downloadUrl;
-    link.download = "mason-spice-labels.pdf";
+    link.download = target.filename;
     link.hidden = true;
     document.body.append(link);
     link.click();
