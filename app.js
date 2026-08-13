@@ -18,6 +18,20 @@ const PAGE_MARGIN = 56.6929;
 const CUT_OFFSET = 5.6693;
 const GRID_COLUMNS = 3;
 const MAX_LABELS = 18;
+const DEFAULT_SPICES = [
+  "Cumin Powder",
+  "Cumin Seeds",
+  "Ginger Powder",
+  "Cardamom Pods",
+  "Garlic Powder",
+  "Mexican Oregano",
+  "Oregano",
+  "Ground Coriander",
+  "Coriander Seeds",
+  "Cinnamon Sticks",
+  "Ground Cumin",
+  "Sesame Seeds",
+];
 
 function fitText(
   context,
@@ -297,6 +311,7 @@ function updateSelection() {
   });
 }
 
+spiceOptions.append(...DEFAULT_SPICES.map(createSpiceOption));
 spiceOptions.addEventListener("change", updateSelection);
 labelHeadingInput.addEventListener("input", updateSelection);
 addSpiceButton.addEventListener("click", addCustomSpice);
