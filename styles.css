@@ -30,7 +30,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -42,11 +43,13 @@ input {
   display: grid;
   grid-template-columns: minmax(0, 0.85fr) minmax(420px, 1fr);
   gap: clamp(64px, 10vw, 150px);
-  align-items: center;
+  align-items: start;
 }
 
 .intro {
-  min-height: 660px;
+  position: sticky;
+  top: 42px;
+  min-height: max(660px, calc(100vh - 84px));
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -189,21 +192,13 @@ form {
 
 .spice-picker {
   margin: 24px 0 0;
-}
-
-.print-target,
-.spice-picker {
   padding: 0;
   border: 0;
 }
 
-.print-target {
-  margin: 0 0 24px;
-}
-
 .heading-field label,
-.print-target legend,
-.spice-picker legend {
+.spice-picker legend,
+.select-field label {
   display: block;
   margin-bottom: 12px;
   font-size: 0.77rem;
@@ -211,80 +206,8 @@ form {
   letter-spacing: 0.05em;
 }
 
-.print-target-options {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 9px;
-}
-
-.target-option {
-  position: relative;
-  cursor: pointer;
-}
-
-.target-option input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-}
-
-.target-content {
-  height: 100%;
-  min-height: 74px;
-  padding: 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border: 1px solid var(--line);
-  border-radius: 2px;
-  color: #625f55;
-  background: rgba(255, 255, 255, 0.28);
-}
-
-.target-content strong,
-.target-content small {
-  display: block;
-}
-
-.target-content strong {
-  color: var(--ink);
-  font-family: "Fraunces", Georgia, serif;
-  font-size: 0.9rem;
-}
-
-.target-content small {
-  margin-top: 4px;
-  color: #817c71;
-  font-size: 0.6rem;
-  line-height: 1.35;
-}
-
-.radio-mark {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 auto;
-  border: 1px solid #99958a;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 4px var(--paper);
-}
-
-.target-option input:checked + .target-content {
-  border-color: rgba(53, 67, 50, 0.55);
-  background: rgba(96, 112, 90, 0.09);
-}
-
-.target-option input:checked + .target-content .radio-mark {
-  border-color: var(--sage-dark);
-  background: var(--sage-dark);
-}
-
-.target-option input:focus-visible + .target-content {
-  outline: 3px solid rgba(182, 91, 63, 0.3);
-  outline-offset: 2px;
-}
-
-.heading-field input {
+.heading-field input,
+.select-field select {
   width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--line);
@@ -296,9 +219,39 @@ form {
   font-size: 0.98rem;
 }
 
-.heading-field input:focus {
+.select-field select {
+  min-height: 48px;
+  appearance: none;
+  padding-right: 38px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--sage-dark) 50%),
+    linear-gradient(135deg, var(--sage-dark) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 20px,
+    calc(100% - 13px) 20px;
+  background-repeat: no-repeat;
+  background-size: 5px 5px;
+}
+
+.heading-field input:focus,
+.select-field select:focus {
   border-color: var(--terracotta);
   box-shadow: 0 0 0 3px rgba(182, 91, 63, 0.12);
+}
+
+.format-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.field-note {
+  min-height: 16px;
+  margin: 7px 0 0;
+  color: #817c71;
+  font-size: 0.64rem;
+  line-height: 1.45;
 }
 
 .spice-options {
@@ -527,7 +480,7 @@ form {
   text-align: center;
 }
 
-.print-tip .tip-dot {
+.print-tip span {
   margin-right: 6px;
   color: var(--sage);
   font-size: 0.45rem;
@@ -543,6 +496,7 @@ form {
   }
 
   .intro {
+    position: static;
     min-height: auto;
     gap: 56px;
     padding-bottom: 0;
@@ -574,6 +528,10 @@ form {
     display: none;
   }
 
+  .format-fields {
+    grid-template-columns: 1fr;
+  }
+
   form {
     margin-top: 32px;
   }
@@ -583,10 +541,6 @@ form {
   }
 
   .preview-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .print-target-options {
     grid-template-columns: 1fr;
   }
 }

@@ -1,54 +1,93 @@
 const form = document.querySelector("#label-form");
+const labelTemplateSelect = document.querySelector("#label-template");
+const borderStyleSelect = document.querySelector("#border-style");
 const labelHeadingInput = document.querySelector("#label-heading");
-const printTargetInputs = [...document.querySelectorAll('input[name="print-target"]')];
-const printTipText = document.querySelector("#print-tip-text");
 const spiceOptions = document.querySelector("#spice-options");
 const customSpiceInput = document.querySelector("#custom-spice");
 const addSpiceButton = document.querySelector("#add-spice-button");
 const selectionCount = document.querySelector("#selection-count");
 const message = document.querySelector("#form-message");
 const previewGrid = document.querySelector("#preview-grid");
+const dimension = document.querySelector("#dimension");
+const templateNote = document.querySelector("#template-note");
 const renderCanvas = document.createElement("canvas");
-renderCanvas.width = 900;
-renderCanvas.height = 600;
 
-const MAX_LABELS = 18;
-const POINTS_PER_MM = 72 / 25.4;
-const mm = (value) => value * POINTS_PER_MM;
-const PRINT_TARGETS = {
-  laser: {
-    pageWidth: mm(210),
-    pageHeight: mm(297),
-    labelWidth: mm(60),
-    labelHeight: mm(40),
-    marginLeft: mm(20),
-    marginTop: mm(20),
-    horizontalGap: mm(4),
-    verticalGap: mm(4),
-    cutOffset: mm(2),
+const POINTS_PER_INCH = 72;
+const LETTER_WIDTH = 8.5 * POINTS_PER_INCH;
+const LETTER_HEIGHT = 11 * POINTS_PER_INCH;
+const MAX_SPICES = 100;
+const LABEL_TEMPLATES = {
+  5160: {
+    name: "Avery 5160",
+    width: 2.625,
+    height: 1,
     columns: 3,
-    rows: 6,
-    canvasWidth: 900,
-    canvasHeight: 600,
-    filename: "mason-spice-labels-a4.pdf",
-    tip: "A4 portrait · 2 mm cut guides · Print at 100% scale.",
+    rows: 10,
+    left: 0.1875,
+    top: 0.5,
+    horizontalPitch: 2.75,
+    verticalPitch: 1,
+    size: "2⅝ × 1 in",
   },
-  avery: {
-    pageWidth: mm(297),
-    pageHeight: mm(210),
-    labelWidth: mm(139),
-    labelHeight: mm(99.1),
-    marginLeft: mm(9.5),
-    marginTop: mm(4.63),
-    horizontalGap: 0,
-    verticalGap: mm(2.54),
-    cutOffset: 0,
+  5163: {
+    name: "Avery 5163",
+    width: 4,
+    height: 2,
     columns: 2,
-    rows: 2,
-    canvasWidth: 1000,
-    canvasHeight: 713,
-    filename: "mason-spice-labels-avery-l4774.pdf",
-    tip: "Avery L4774-20 · A4 landscape · Print at 100% scale.",
+    rows: 5,
+    left: 0.15625,
+    top: 0.5,
+    horizontalPitch: 4.1875,
+    verticalPitch: 2,
+    size: "4 × 2 in",
+  },
+  5164: {
+    name: "Avery 5164",
+    width: 4,
+    height: 10 / 3,
+    columns: 2,
+    rows: 3,
+    left: 0.15625,
+    top: 0.5,
+    horizontalPitch: 4.1875,
+    verticalPitch: 10 / 3,
+    size: "4 × 3⅓ in",
+  },
+  5167: {
+    name: "Avery 5167",
+    width: 1.75,
+    height: 0.5,
+    columns: 4,
+    rows: 20,
+    left: 0.28125,
+    top: 0.5,
+    horizontalPitch: 2.0625,
+    verticalPitch: 0.5,
+    size: "1¾ × ½ in",
+  },
+  5195: {
+    name: "Avery 5195",
+    width: 1.75,
+    height: 2 / 3,
+    columns: 4,
+    rows: 15,
+    left: 0.28125,
+    top: 0.5,
+    horizontalPitch: 2.0625,
+    verticalPitch: 2 / 3,
+    size: "1¾ × ⅔ in",
+  },
+  22822: {
+    name: "Avery 22822",
+    width: 3,
+    height: 2,
+    columns: 2,
+    rows: 4,
+    left: 0.8125,
+    top: 1.25,
+    horizontalPitch: 3.75,
+    verticalPitch: 2.125,
+    size: "3 × 2 in",
   },
 };
 const DEFAULT_SPICES = [
@@ -64,15 +103,18 @@ const DEFAULT_SPICES = [
   "Cinnamon Sticks",
   "Ground Cumin",
   "Sesame Seeds",
-  "Nutritional Yeast",
 ];
+
+function currentTemplate() {
+  return LABEL_TEMPLATES[labelTemplateSelect.value];
+}
 
 function fitText(
   context,
   text,
   maxWidth,
   startingSize,
-  minimumSize = 54,
+  minimumSize,
   fontFamily = "Fraunces, Georgia, serif",
   fontWeight = 700,
 ) {
@@ -89,74 +131,157 @@ function fitText(
   return size;
 }
 
-function drawLabel(canvas, name = "", heading = "MASON'S FINE SPICES") {
+function drawCorner(context, x, y, size, horizontalDirection, verticalDirection) {
+  context.beginPath();
+  context.moveTo(x + horizontalDirection * size, y);
+  context.quadraticCurveTo(x, y, x, y + verticalDirection * size);
+  context.stroke();
+
+  context.beginPath();
+  context.arc(
+    x + horizontalDirection * size * 0.42,
+    y + verticalDirection * size * 0.42,
+    size * 0.12,
+    0,
+    Math.PI * 2,
+  );
+  context.fill();
+}
+
+function drawBorder(context, width, height, style) {
+  const shortSide = Math.min(width, height);
+  const outerInset = Math.max(12, shortSide * 0.05);
+  const innerInset = Math.max(20, shortSide * 0.09);
+  const outerLine = Math.max(3, shortSide * 0.014);
+  const accentLine = Math.max(2, shortSide * 0.006);
+
+  context.strokeStyle = "#354332";
+  context.fillStyle = "#b65b3f";
+  context.lineWidth = outerLine;
+  context.setLineDash([]);
+
+  if (style === "simple") {
+    context.strokeRect(
+      outerInset,
+      outerInset,
+      width - outerInset * 2,
+      height - outerInset * 2,
+    );
+    return;
+  }
+
+  if (style === "corners") {
+    const cornerSize = Math.min(shortSide * 0.2, width * 0.09);
+    context.lineWidth = accentLine;
+    drawCorner(context, innerInset, innerInset, cornerSize, 1, 1);
+    drawCorner(context, width - innerInset, innerInset, cornerSize, -1, 1);
+    drawCorner(context, innerInset, height - innerInset, cornerSize, 1, -1);
+    drawCorner(
+      context,
+      width - innerInset,
+      height - innerInset,
+      cornerSize,
+      -1,
+      -1,
+    );
+    return;
+  }
+
+  if (style === "dotted") {
+    context.lineWidth = accentLine;
+    context.setLineDash([accentLine, accentLine * 2.3]);
+    context.strokeRect(
+      outerInset,
+      outerInset,
+      width - outerInset * 2,
+      height - outerInset * 2,
+    );
+    context.setLineDash([]);
+    return;
+  }
+
+  context.strokeRect(
+    outerInset,
+    outerInset,
+    width - outerInset * 2,
+    height - outerInset * 2,
+  );
+  context.strokeStyle = "#b65b3f";
+  context.lineWidth = accentLine;
+  context.strokeRect(
+    innerInset,
+    innerInset,
+    width - innerInset * 2,
+    height - innerInset * 2,
+  );
+}
+
+function sizeCanvas(canvas, template) {
+  canvas.width = 1200;
+  canvas.height = Math.round(1200 * (template.height / template.width));
+}
+
+function drawLabel(
+  canvas,
+  name = "",
+  heading = "MASON'S FINE SPICES",
+  borderStyle = "classic",
+) {
   const context = canvas.getContext("2d");
-  const displayName = name.trim() || "Your Spice";
-  const displayHeading = heading.trim() || "MASON'S FINE SPICES";
   const width = canvas.width;
   const height = canvas.height;
+  const shortSide = Math.min(width, height);
+  const displayName = name.trim() || "Your Spice";
+  const displayHeading = heading.trim() || "MASON'S FINE SPICES";
+  const compact = height / width < 0.35;
 
   context.fillStyle = "#fffaf0";
   context.fillRect(0, 0, width, height);
-
-  context.strokeStyle = "#354332";
-  context.lineWidth = width * 0.0089;
-  context.strokeRect(width * 0.02, height * 0.03, width * 0.96, height * 0.94);
-
-  context.strokeStyle = "#b65b3f";
-  context.lineWidth = width * 0.0022;
-  context.strokeRect(
-    width * 0.0344,
-    height * 0.0517,
-    width * 0.9312,
-    height * 0.8966,
-  );
+  drawBorder(context, width, height, borderStyle);
 
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.fillStyle = "#b65b3f";
-  context.letterSpacing = `${width * 0.0078}px`;
+
   const headingFont = "DM Sans, Arial, sans-serif";
+  const headingY = compact ? height * 0.25 : height * 0.2;
   const headingSize = fitText(
     context,
     displayHeading,
-    width * 0.8333,
-    width * 0.0256,
-    width * 0.0133,
+    width * 0.72,
+    Math.max(16, shortSide * 0.055),
+    Math.max(11, shortSide * 0.026),
     headingFont,
     600,
   );
+  context.fillStyle = "#b65b3f";
   context.font = `600 ${headingSize}px ${headingFont}`;
-  context.fillText(displayHeading, width / 2, height * 0.2033);
+  context.fillText(displayHeading, width / 2, headingY);
 
-  context.fillStyle = "#354332";
-  context.beginPath();
-  context.arc(width / 2, height * 0.2933, width * 0.0056, 0, Math.PI * 2);
-  context.fill();
-
-  const fontSize = fitText(
+  const nameY = compact ? height * 0.59 : height * 0.53;
+  const nameSize = fitText(
     context,
     displayName,
-    width * 0.8389,
-    width * 0.1244,
-    width * 0.06,
+    width * 0.78,
+    Math.max(34, shortSide * (compact ? 0.3 : 0.2)),
+    Math.max(19, shortSide * 0.09),
   );
   context.fillStyle = name.trim() ? "#202019" : "#8d887d";
-  context.font = `700 ${fontSize}px Fraunces, Georgia, serif`;
-  context.letterSpacing = "0px";
-  context.fillText(displayName, width / 2, height * 0.525);
+  context.font = `700 ${nameSize}px Fraunces, Georgia, serif`;
+  context.fillText(displayName, width / 2, nameY);
 
-  context.strokeStyle = "#b65b3f";
-  context.lineWidth = width * 0.0033;
-  context.beginPath();
-  context.moveTo(width * 0.3778, height * 0.675);
-  context.lineTo(width * 0.6222, height * 0.675);
-  context.stroke();
+  if (!compact) {
+    const lineY = height * 0.7;
+    context.strokeStyle = "#b65b3f";
+    context.lineWidth = Math.max(2, shortSide * 0.006);
+    context.beginPath();
+    context.moveTo(width * 0.38, lineY);
+    context.lineTo(width * 0.62, lineY);
+    context.stroke();
 
-  context.fillStyle = "#60705a";
-  context.font = `600 ${width * 0.0222}px DM Sans, Arial, sans-serif`;
-  context.letterSpacing = `${width * 0.0067}px`;
-  context.fillText("PANTRY GOODS", width / 2, height * 0.7767);
+    context.fillStyle = "#60705a";
+    context.font = `600 ${Math.max(13, shortSide * 0.036)}px ${headingFont}`;
+    context.fillText("PANTRY GOODS", width / 2, height * 0.82);
+  }
 }
 
 function ascii(value) {
@@ -187,75 +312,66 @@ function dataUrlToBytes(dataUrl) {
   return bytes;
 }
 
-function selectedPrintTarget() {
-  const selected = printTargetInputs.find((input) => input.checked);
-  return PRINT_TARGETS[selected.value];
-}
+function createPageContent(spiceNames, template, firstImageIndex) {
+  const labelWidth = template.width * POINTS_PER_INCH;
+  const labelHeight = template.height * POINTS_PER_INCH;
+  const left = template.left * POINTS_PER_INCH;
+  const top = template.top * POINTS_PER_INCH;
+  const horizontalPitch = template.horizontalPitch * POINTS_PER_INCH;
+  const verticalPitch = template.verticalPitch * POINTS_PER_INCH;
+  const commands = [];
 
-function createPdf(spiceNames, heading, target) {
-  renderCanvas.width = target.canvasWidth;
-  renderCanvas.height = target.canvasHeight;
-  const imageBytes = spiceNames.map((name) => {
-    drawLabel(renderCanvas, name, heading);
-    return dataUrlToBytes(renderCanvas.toDataURL("image/jpeg", 0.96));
-  });
-  const labelsPerPage = target.columns * target.rows;
-  const pageCount = Math.ceil(spiceNames.length / labelsPerPage);
-  const imageObjectStart = 3 + pageCount;
-  const contentObjectStart = imageObjectStart + spiceNames.length;
-  const pageContents = Array.from({ length: pageCount }, (_, pageIndex) => {
-    const pageStart = pageIndex * labelsPerPage;
-    const pageEnd = Math.min(pageStart + labelsPerPage, spiceNames.length);
-    const commands = target.cutOffset
-      ? ["0.25 w", "[2 2] 0 d", "0.65 G"]
-      : [];
+  spiceNames.forEach((_, index) => {
+    const column = index % template.columns;
+    const row = Math.floor(index / template.columns);
+    const labelLeft = left + column * horizontalPitch;
+    const labelTop = top + row * verticalPitch;
+    const labelBottom = LETTER_HEIGHT - labelTop - labelHeight;
 
-    for (let imageIndex = pageStart; imageIndex < pageEnd; imageIndex += 1) {
-      const localIndex = imageIndex - pageStart;
-      const column = localIndex % target.columns;
-      const row = Math.floor(localIndex / target.columns);
-      const labelLeft =
-        target.marginLeft + column * (target.labelWidth + target.horizontalGap);
-      const labelTop =
-        target.marginTop + row * (target.labelHeight + target.verticalGap);
-      const labelBottom = target.pageHeight - labelTop - target.labelHeight;
-
-      if (target.cutOffset) {
-        commands.push(
-          `${labelLeft - target.cutOffset} ${labelBottom - target.cutOffset} ${target.labelWidth + target.cutOffset * 2} ${target.labelHeight + target.cutOffset * 2} re S`,
-        );
-      }
-
-      commands.push(
-        `q\n${target.labelWidth} 0 0 ${target.labelHeight} ${labelLeft} ${labelBottom} cm\n/Img${imageIndex + 1} Do\nQ`,
-      );
-    }
-
-    return `${commands.join("\n")}\n`;
-  });
-
-  const pageObjects = pageContents.map((_, pageIndex) => {
-    const pageStart = pageIndex * labelsPerPage;
-    const pageEnd = Math.min(pageStart + labelsPerPage, spiceNames.length);
-    const resources = spiceNames
-      .slice(pageStart, pageEnd)
-      .map(
-        (_, localIndex) =>
-          `/Img${pageStart + localIndex + 1} ${imageObjectStart + pageStart + localIndex} 0 R`,
-      )
-      .join(" ");
-
-    return ascii(
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${target.pageWidth} ${target.pageHeight}] /Resources << /XObject << ${resources} >> >> /Contents ${contentObjectStart + pageIndex} 0 R >>`,
+    commands.push(
+      `q\n${labelWidth} 0 0 ${labelHeight} ${labelLeft} ${labelBottom} cm\n/Img${firstImageIndex + index + 1} Do\nQ`,
     );
   });
 
+  return `${commands.join("\n")}\n`;
+}
+
+function createPdf(spiceNames, heading, template, borderStyle) {
+  sizeCanvas(renderCanvas, template);
+  const imageBytes = spiceNames.map((name) => {
+    drawLabel(renderCanvas, name, heading, borderStyle);
+    return dataUrlToBytes(renderCanvas.toDataURL("image/jpeg", 0.96));
+  });
+  const labelsPerPage = template.columns * template.rows;
+  const pageCount = Math.ceil(spiceNames.length / labelsPerPage);
+  const pageObjectStart = 3;
+  const imageObjectStart = pageObjectStart + pageCount;
+  const contentObjectStart = imageObjectStart + spiceNames.length;
+  const pageIds = Array.from(
+    { length: pageCount },
+    (_, index) => pageObjectStart + index,
+  );
+  const pageContents = pageIds.map((_, pageIndex) => {
+    const firstImageIndex = pageIndex * labelsPerPage;
+    return createPageContent(
+      spiceNames.slice(firstImageIndex, firstImageIndex + labelsPerPage),
+      template,
+      firstImageIndex,
+    );
+  });
+  const imageResources = spiceNames
+    .map((_, index) => `/Img${index + 1} ${imageObjectStart + index} 0 R`)
+    .join(" ");
   const objects = [
     ascii("<< /Type /Catalog /Pages 2 0 R >>"),
     ascii(
-      `<< /Type /Pages /Kids [${pageObjects.map((_, index) => `${index + 3} 0 R`).join(" ")}] /Count ${pageCount} >>`,
+      `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pageCount} >>`,
     ),
-    ...pageObjects,
+    ...pageIds.map((_, index) =>
+      ascii(
+        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${LETTER_WIDTH} ${LETTER_HEIGHT}] /Resources << /XObject << ${imageResources} >> >> /Contents ${contentObjectStart + index} 0 R >>`,
+      ),
+    ),
     ...imageBytes.map((bytes) =>
       joinBytes([
         ascii(
@@ -355,8 +471,8 @@ function addCustomSpice() {
     return;
   }
 
-  if (inputs.length >= MAX_LABELS) {
-    message.textContent = `An A4 sheet can hold up to ${MAX_LABELS} labels.`;
+  if (inputs.length >= MAX_SPICES) {
+    message.textContent = `You can add up to ${MAX_SPICES} spices.`;
     return;
   }
 
@@ -366,14 +482,26 @@ function addCustomSpice() {
   customSpiceInput.focus();
 }
 
+function updateTemplateDetails(template) {
+  const capacity = template.columns * template.rows;
+  dimension.textContent = template.size;
+  templateNote.textContent = `${template.size} · ${template.columns} columns × ${template.rows} rows · ${capacity} per sheet`;
+}
+
 function updateSelection() {
   const spices = selectedSpices();
   const count = spices.length;
   const heading = labelHeadingInput.value;
-  const target = selectedPrintTarget();
+  const template = currentTemplate();
+  const borderStyle = borderStyleSelect.value;
+  const capacity = template.columns * template.rows;
+  const sheets = Math.max(1, Math.ceil(count / capacity));
 
-  selectionCount.textContent = `${count} ${count === 1 ? "LABEL" : "LABELS"} SELECTED`;
-  printTipText.textContent = target.tip;
+  updateTemplateDetails(template);
+  selectionCount.textContent =
+    count === 0
+      ? "NO LABELS SELECTED"
+      : `${count} ${count === 1 ? "LABEL" : "LABELS"} · ${sheets} ${sheets === 1 ? "SHEET" : "SHEETS"}`;
   message.classList.remove("success");
   message.textContent = "";
   previewGrid.replaceChildren();
@@ -388,17 +516,17 @@ function updateSelection() {
 
   spices.forEach((name) => {
     const previewCanvas = document.createElement("canvas");
-    previewCanvas.width = target.canvasWidth;
-    previewCanvas.height = target.canvasHeight;
+    sizeCanvas(previewCanvas, template);
     previewCanvas.setAttribute("aria-label", `${name} label preview`);
-    drawLabel(previewCanvas, name, heading);
+    drawLabel(previewCanvas, name, heading, borderStyle);
     previewGrid.append(previewCanvas);
   });
 }
 
 spiceOptions.append(...DEFAULT_SPICES.map(createSpiceOption));
 spiceOptions.addEventListener("change", updateSelection);
-printTargetInputs.forEach((input) => input.addEventListener("change", updateSelection));
+labelTemplateSelect.addEventListener("change", updateSelection);
+borderStyleSelect.addEventListener("change", updateSelection);
 labelHeadingInput.addEventListener("input", updateSelection);
 addSpiceButton.addEventListener("click", addCustomSpice);
 customSpiceInput.addEventListener("input", () => {
@@ -415,6 +543,7 @@ customSpiceInput.addEventListener("keydown", (event) => {
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   const spices = selectedSpices();
+  const template = currentTemplate();
   message.classList.remove("success");
 
   if (spices.length === 0) {
@@ -424,20 +553,24 @@ form.addEventListener("submit", (event) => {
   }
 
   try {
-    const target = selectedPrintTarget();
-    const pdf = createPdf(spices, labelHeadingInput.value, target);
+    const pdf = createPdf(
+      spices,
+      labelHeadingInput.value,
+      template,
+      borderStyleSelect.value,
+    );
     const downloadUrl = URL.createObjectURL(pdf);
     const link = document.createElement("a");
 
     link.href = downloadUrl;
-    link.download = target.filename;
+    link.download = `mason-spice-labels-avery-${labelTemplateSelect.value}.pdf`;
     link.hidden = true;
     document.body.append(link);
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(downloadUrl), 60000);
     message.classList.add("success");
-    message.textContent = "PDF generated. Check your downloads.";
+    message.textContent = `${template.name} PDF generated. Check your downloads.`;
   } catch (error) {
     console.error("Unable to generate the PDF.", error);
     message.classList.remove("success");
