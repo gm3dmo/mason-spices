@@ -1,6 +1,7 @@
 const form = document.querySelector("#label-form");
 const labelTemplateSelect = document.querySelector("#label-template");
 const borderStyleSelect = document.querySelector("#border-style");
+const labelFontSelect = document.querySelector("#label-font");
 const labelHeadingInput = document.querySelector("#label-heading");
 const resetHeadingButton = document.querySelector("#reset-heading-button");
 const spiceOptions = document.querySelector("#spice-options");
@@ -20,6 +21,18 @@ const A4_HEIGHT = (297 / 25.4) * POINTS_PER_INCH;
 const MAX_SPICES = 100;
 const LABEL_HEADING_STORAGE_KEY = "mason-spices.label-heading";
 const DEFAULT_LABEL_HEADING = labelHeadingInput.defaultValue;
+const LABEL_FONTS = {
+  classic: {
+    family: "Fraunces, Georgia, serif",
+    face: "700 16px Fraunces",
+    weight: 700,
+  },
+  geometric: {
+    family: "Montserrat, Arial, sans-serif",
+    face: "700 16px Montserrat",
+    weight: 700,
+  },
+};
 const LABEL_TEMPLATES = {
   "plain-a4": {
     name: "Plain A4",
@@ -162,6 +175,11 @@ const DEFAULT_SPICES = [
 
 function currentTemplate() {
   return LABEL_TEMPLATES[labelTemplateSelect.value];
+}
+
+function loadLabelFont(fontStyle) {
+  const font = LABEL_FONTS[fontStyle] || LABEL_FONTS.classic;
+  return document.fonts.load(font.face);
 }
 
 function updateHeadingResetButton() {
@@ -502,6 +520,7 @@ function drawLabel(
   heading = "MASON'S FINE SPICES",
   borderStyle = "classic",
   template = currentTemplate(),
+  fontStyle = "classic",
 ) {
   const context = canvas.getContext("2d");
   const width = canvas.width;
@@ -510,6 +529,7 @@ function drawLabel(
   const displayName = name.trim() || "Your Spice";
   const displayHeading = heading.trim() || "MASON'S FINE SPICES";
   const compact = height / width < 0.35;
+  const nameFont = LABEL_FONTS[fontStyle] || LABEL_FONTS.classic;
 
   context.fillStyle = "#fffaf0";
   context.fillRect(0, 0, width, height);
@@ -583,9 +603,11 @@ function drawLabel(
     width * 0.78,
     Math.max(34, shortSide * (compact ? 0.3 : 0.2)),
     Math.max(19, shortSide * 0.09),
+    nameFont.family,
+    nameFont.weight,
   );
   context.fillStyle = name.trim() ? "#202019" : "#8d887d";
-  context.font = `700 ${nameSize}px Fraunces, Georgia, serif`;
+  context.font = `${nameFont.weight} ${nameSize}px ${nameFont.family}`;
   context.fillText(displayName, width / 2, nameY);
 
   if (!compact) {
@@ -666,10 +688,10 @@ function createPageContent(spiceNames, template, firstImageIndex) {
   return `${commands.join("\n")}\n`;
 }
 
-function createPdf(spiceNames, heading, template, borderStyle) {
+function createPdf(spiceNames, heading, template, borderStyle, fontStyle) {
   sizeCanvas(renderCanvas, template);
   const imageBytes = spiceNames.map((name) => {
-    drawLabel(renderCanvas, name, heading, borderStyle, template);
+    drawLabel(renderCanvas, name, heading, borderStyle, template, fontStyle);
     return dataUrlToBytes(renderCanvas.toDataURL("image/jpeg", 0.96));
   });
   const labelsPerPage = template.columns * template.rows;
@@ -827,6 +849,7 @@ function updateSelection() {
   const heading = labelHeadingInput.value;
   const template = currentTemplate();
   const borderStyle = borderStyleSelect.value;
+  const fontStyle = labelFontSelect.value;
   const capacity = template.columns * template.rows;
   const sheets = Math.max(1, Math.ceil(count / capacity));
 
@@ -851,7 +874,14 @@ function updateSelection() {
     const previewCanvas = document.createElement("canvas");
     sizeCanvas(previewCanvas, template);
     previewCanvas.setAttribute("aria-label", `${name} label preview`);
-    drawLabel(previewCanvas, name, heading, borderStyle, template);
+    drawLabel(
+      previewCanvas,
+      name,
+      heading,
+      borderStyle,
+      template,
+      fontStyle,
+    );
     previewGrid.append(previewCanvas);
   });
 }
@@ -860,6 +890,10 @@ spiceOptions.append(...DEFAULT_SPICES.map(createSpiceOption));
 spiceOptions.addEventListener("change", updateSelection);
 labelTemplateSelect.addEventListener("change", updateSelection);
 borderStyleSelect.addEventListener("change", updateSelection);
+labelFontSelect.addEventListener("change", async () => {
+  await loadLabelFont(labelFontSelect.value);
+  updateSelection();
+});
 labelHeadingInput.addEventListener("input", () => {
   saveHeading();
   updateSelection();
@@ -877,7 +911,7 @@ customSpiceInput.addEventListener("keydown", (event) => {
   }
 });
 
-form.addEventListener("submit", (event) => {
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const spices = selectedSpices();
   const template = currentTemplate();
@@ -890,11 +924,13 @@ form.addEventListener("submit", (event) => {
   }
 
   try {
+    await loadLabelFont(labelFontSelect.value);
     const pdf = createPdf(
       spices,
       labelHeadingInput.value,
       template,
       borderStyleSelect.value,
+      labelFontSelect.value,
     );
     const downloadUrl = URL.createObjectURL(pdf);
     const link = document.createElement("a");

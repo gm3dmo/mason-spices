@@ -272,6 +272,10 @@ form {
   margin-bottom: 24px;
 }
 
+.font-field {
+  margin-bottom: 24px;
+}
+
 .field-note {
   min-height: 16px;
   margin: 7px 0 0;
