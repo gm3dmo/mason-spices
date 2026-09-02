@@ -2,6 +2,7 @@ const form = document.querySelector("#label-form");
 const labelTemplateSelect = document.querySelector("#label-template");
 const borderStyleSelect = document.querySelector("#border-style");
 const labelHeadingInput = document.querySelector("#label-heading");
+const resetHeadingButton = document.querySelector("#reset-heading-button");
 const spiceOptions = document.querySelector("#spice-options");
 const customSpiceInput = document.querySelector("#custom-spice");
 const addSpiceButton = document.querySelector("#add-spice-button");
@@ -17,6 +18,8 @@ const POINTS_PER_INCH = 72;
 const A4_WIDTH = (210 / 25.4) * POINTS_PER_INCH;
 const A4_HEIGHT = (297 / 25.4) * POINTS_PER_INCH;
 const MAX_SPICES = 100;
+const LABEL_HEADING_STORAGE_KEY = "mason-spices.label-heading";
+const DEFAULT_LABEL_HEADING = labelHeadingInput.defaultValue;
 const LABEL_TEMPLATES = {
   "plain-a4": {
     name: "Plain A4",
@@ -159,6 +162,39 @@ const DEFAULT_SPICES = [
 
 function currentTemplate() {
   return LABEL_TEMPLATES[labelTemplateSelect.value];
+}
+
+function updateHeadingResetButton() {
+  resetHeadingButton.disabled =
+    labelHeadingInput.value === DEFAULT_LABEL_HEADING;
+}
+
+function restoreSavedHeading() {
+  const savedHeading = localStorage.getItem(LABEL_HEADING_STORAGE_KEY);
+
+  if (savedHeading !== null) {
+    labelHeadingInput.value = savedHeading.slice(0, labelHeadingInput.maxLength);
+  }
+
+  updateHeadingResetButton();
+}
+
+function saveHeading() {
+  if (labelHeadingInput.value === DEFAULT_LABEL_HEADING) {
+    localStorage.removeItem(LABEL_HEADING_STORAGE_KEY);
+  } else {
+    localStorage.setItem(LABEL_HEADING_STORAGE_KEY, labelHeadingInput.value);
+  }
+
+  updateHeadingResetButton();
+}
+
+function resetHeading() {
+  localStorage.removeItem(LABEL_HEADING_STORAGE_KEY);
+  labelHeadingInput.value = DEFAULT_LABEL_HEADING;
+  updateHeadingResetButton();
+  updateSelection();
+  labelHeadingInput.focus();
 }
 
 function fitText(
@@ -824,7 +860,11 @@ spiceOptions.append(...DEFAULT_SPICES.map(createSpiceOption));
 spiceOptions.addEventListener("change", updateSelection);
 labelTemplateSelect.addEventListener("change", updateSelection);
 borderStyleSelect.addEventListener("change", updateSelection);
-labelHeadingInput.addEventListener("input", updateSelection);
+labelHeadingInput.addEventListener("input", () => {
+  saveHeading();
+  updateSelection();
+});
+resetHeadingButton.addEventListener("click", resetHeading);
 addSpiceButton.addEventListener("click", addCustomSpice);
 customSpiceInput.addEventListener("input", () => {
   message.classList.remove("success");
@@ -878,5 +918,19 @@ form.addEventListener("submit", (event) => {
   }
 });
 
+window.addEventListener("storage", (event) => {
+  if (event.key !== LABEL_HEADING_STORAGE_KEY) {
+    return;
+  }
+
+  labelHeadingInput.value = (event.newValue ?? DEFAULT_LABEL_HEADING).slice(
+    0,
+    labelHeadingInput.maxLength,
+  );
+  updateHeadingResetButton();
+  updateSelection();
+});
+
+restoreSavedHeading();
 document.fonts.ready.then(updateSelection);
 updateSelection();
