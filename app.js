@@ -168,6 +168,7 @@ const DEFAULT_SPICES = [
   "Ginger Powder",
   "Cardamom Pods",
   "Garlic Powder",
+  "Onion Powder",
   "Mexican Oregano",
   "Oregano",
   "Ground Coriander",
