@@ -850,6 +850,16 @@ function selectedSpices() {
   );
 }
 
+function toKebabCase(value) {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/['’]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
+}
+
 function createSpiceOption(name) {
   const label = document.createElement("label");
   const input = document.createElement("input");
@@ -1036,10 +1046,10 @@ form.addEventListener("submit", async (event) => {
     const link = document.createElement("a");
 
     link.href = downloadUrl;
-    link.download =
-      labelTemplateSelect.value === "plain-a4"
-        ? "mason-spice-labels-plain-a4.pdf"
-        : `mason-spice-labels-avery-${labelTemplateSelect.value}.pdf`;
+    const filename =
+      toKebabCase(labelHeadingInput.value) ||
+      toKebabCase(DEFAULT_LABEL_HEADING);
+    link.download = `${filename}.pdf`;
     link.hidden = true;
     document.body.append(link);
     link.click();
