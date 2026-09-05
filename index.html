@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Montserrat:wght@600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=20260902-11" />
+    <link rel="stylesheet" href="styles.css?v=20260905-2" />
   </head>
   <body>
     <main class="shell">
@@ -85,7 +85,7 @@
             <label for="label-font">Spice name font</label>
             <select id="label-font">
               <option value="classic">Classic serif</option>
-              <option value="geometric">Montserrat · Gotham-style</option>
+              <option value="geometric" selected>Montserrat · Gotham-style</option>
             </select>
           </div>
 
@@ -103,9 +103,23 @@
             />
           </div>
 
+          <div class="heading-field footer-field">
+            <div class="heading-field-label">
+              <label for="label-footer">Label footer</label>
+              <button id="reset-footer-button" type="button">Reset to default</button>
+            </div>
+            <input
+              id="label-footer"
+              type="text"
+              maxlength="32"
+              value="PANTRY GOODS"
+              autocomplete="off"
+            />
+          </div>
+
           <fieldset class="spice-picker">
-            <legend>Spices to include</legend>
-            <div id="spice-options" class="spice-options"></div>
+            <legend>Labels to include</legend>
+            <div id="spice-options" class="ingredient-sections"></div>
           </fieldset>
 
           <div class="custom-spice">
@@ -150,6 +164,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=20260902-11"></script>
+    <script src="app.js?v=20260905-2"></script>
   </body>
 </html>

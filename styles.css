@@ -265,6 +265,10 @@ form {
   box-shadow: 0 0 0 3px rgba(182, 91, 63, 0.12);
 }
 
+.footer-field {
+  margin-top: 16px;
+}
+
 .format-fields {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
@@ -284,7 +288,20 @@ form {
   line-height: 1.45;
 }
 
-.spice-options {
+.ingredient-sections {
+  display: grid;
+  gap: 24px;
+}
+
+.ingredient-section-title {
+  margin: 0 0 10px;
+  color: var(--sage-dark);
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ingredient-options {
   display: grid;
   gap: 9px;
 }

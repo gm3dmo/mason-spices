@@ -4,6 +4,8 @@ const borderStyleSelect = document.querySelector("#border-style");
 const labelFontSelect = document.querySelector("#label-font");
 const labelHeadingInput = document.querySelector("#label-heading");
 const resetHeadingButton = document.querySelector("#reset-heading-button");
+const labelFooterInput = document.querySelector("#label-footer");
+const resetFooterButton = document.querySelector("#reset-footer-button");
 const spiceOptions = document.querySelector("#spice-options");
 const customSpiceInput = document.querySelector("#custom-spice");
 const addSpiceButton = document.querySelector("#add-spice-button");
@@ -20,7 +22,10 @@ const A4_WIDTH = (210 / 25.4) * POINTS_PER_INCH;
 const A4_HEIGHT = (297 / 25.4) * POINTS_PER_INCH;
 const MAX_SPICES = 100;
 const LABEL_HEADING_STORAGE_KEY = "mason-spices.label-heading";
+const LABEL_FOOTER_STORAGE_KEY = "mason-spices.label-footer";
 const DEFAULT_LABEL_HEADING = labelHeadingInput.defaultValue;
+const DEFAULT_LABEL_FOOTER = labelFooterInput.defaultValue;
+const DEFAULT_LABEL_FONT = "geometric";
 const LABEL_FONTS = {
   classic: {
     family: "Fraunces, Georgia, serif",
@@ -172,13 +177,19 @@ const DEFAULT_SPICES = [
   "Sesame Seeds",
   "Nutritional Yeast",
 ];
+const DEFAULT_OILS = [
+  "Olive Oil",
+  "Extra Virgin Olive Oil",
+  "Peanut Oil",
+  "Vegetable Oil",
+];
 
 function currentTemplate() {
   return LABEL_TEMPLATES[labelTemplateSelect.value];
 }
 
 function loadLabelFont(fontStyle) {
-  const font = LABEL_FONTS[fontStyle] || LABEL_FONTS.classic;
+  const font = LABEL_FONTS[fontStyle] || LABEL_FONTS[DEFAULT_LABEL_FONT];
   return document.fonts.load(font.face);
 }
 
@@ -213,6 +224,38 @@ function resetHeading() {
   updateHeadingResetButton();
   updateSelection();
   labelHeadingInput.focus();
+}
+
+function updateFooterResetButton() {
+  resetFooterButton.disabled = labelFooterInput.value === DEFAULT_LABEL_FOOTER;
+}
+
+function restoreSavedFooter() {
+  const savedFooter = localStorage.getItem(LABEL_FOOTER_STORAGE_KEY);
+
+  if (savedFooter !== null) {
+    labelFooterInput.value = savedFooter.slice(0, labelFooterInput.maxLength);
+  }
+
+  updateFooterResetButton();
+}
+
+function saveFooter() {
+  if (labelFooterInput.value === DEFAULT_LABEL_FOOTER) {
+    localStorage.removeItem(LABEL_FOOTER_STORAGE_KEY);
+  } else {
+    localStorage.setItem(LABEL_FOOTER_STORAGE_KEY, labelFooterInput.value);
+  }
+
+  updateFooterResetButton();
+}
+
+function resetFooter() {
+  localStorage.removeItem(LABEL_FOOTER_STORAGE_KEY);
+  labelFooterInput.value = DEFAULT_LABEL_FOOTER;
+  updateFooterResetButton();
+  updateSelection();
+  labelFooterInput.focus();
 }
 
 function fitText(
@@ -518,9 +561,10 @@ function drawLabel(
   canvas,
   name = "",
   heading = "MASON'S FINE SPICES",
+  footer = "PANTRY GOODS",
   borderStyle = "classic",
   template = currentTemplate(),
-  fontStyle = "classic",
+  fontStyle = DEFAULT_LABEL_FONT,
 ) {
   const context = canvas.getContext("2d");
   const width = canvas.width;
@@ -528,8 +572,9 @@ function drawLabel(
   const shortSide = Math.min(width, height);
   const displayName = name.trim() || "Your Spice";
   const displayHeading = heading.trim() || "MASON'S FINE SPICES";
+  const displayFooter = footer.trim();
   const compact = height / width < 0.35;
-  const nameFont = LABEL_FONTS[fontStyle] || LABEL_FONTS.classic;
+  const nameFont = LABEL_FONTS[fontStyle] || LABEL_FONTS[DEFAULT_LABEL_FONT];
 
   context.fillStyle = "#fffaf0";
   context.fillRect(0, 0, width, height);
@@ -619,13 +664,24 @@ function drawLabel(
     context.lineTo(originalDesign ? width * (560 / 900) : width * 0.62, lineY);
     context.stroke();
 
-    context.fillStyle = "#60705a";
-    context.font = `600 ${Math.max(13, shortSide * 0.036)}px ${headingFont}`;
-    context.fillText(
-      "PANTRY GOODS",
-      width / 2,
-      originalDesign ? height * (466 / 600) : height * 0.82,
-    );
+    if (displayFooter) {
+      const footerSize = fitText(
+        context,
+        displayFooter,
+        width * 0.72,
+        Math.max(13, shortSide * 0.036),
+        Math.max(10, shortSide * 0.024),
+        headingFont,
+        600,
+      );
+      context.fillStyle = "#60705a";
+      context.font = `600 ${footerSize}px ${headingFont}`;
+      context.fillText(
+        displayFooter,
+        width / 2,
+        originalDesign ? height * (466 / 600) : height * 0.82,
+      );
+    }
   }
 }
 
@@ -688,10 +744,25 @@ function createPageContent(spiceNames, template, firstImageIndex) {
   return `${commands.join("\n")}\n`;
 }
 
-function createPdf(spiceNames, heading, template, borderStyle, fontStyle) {
+function createPdf(
+  spiceNames,
+  heading,
+  footer,
+  template,
+  borderStyle,
+  fontStyle,
+) {
   sizeCanvas(renderCanvas, template);
   const imageBytes = spiceNames.map((name) => {
-    drawLabel(renderCanvas, name, heading, borderStyle, template, fontStyle);
+    drawLabel(
+      renderCanvas,
+      name,
+      heading,
+      footer,
+      borderStyle,
+      template,
+      fontStyle,
+    );
     return dataUrlToBytes(renderCanvas.toDataURL("image/jpeg", 0.96));
   });
   const labelsPerPage = template.columns * template.rows;
@@ -800,6 +871,21 @@ function createSpiceOption(name) {
   return label;
 }
 
+function createIngredientSection(title, names) {
+  const section = document.createElement("section");
+  const heading = document.createElement("h3");
+  const options = document.createElement("div");
+
+  section.className = "ingredient-section";
+  heading.className = "ingredient-section-title";
+  heading.textContent = title;
+  options.className = "ingredient-options";
+  options.append(...names.map(createSpiceOption));
+  section.append(heading, options);
+
+  return { section, options };
+}
+
 function addCustomSpice() {
   const name = customSpiceInput.value.trim();
   const inputs = [...document.querySelectorAll('input[name="spice"]')];
@@ -828,7 +914,7 @@ function addCustomSpice() {
     return;
   }
 
-  spiceOptions.append(createSpiceOption(name));
+  defaultSpiceOptions.append(createSpiceOption(name));
   customSpiceInput.value = "";
   updateSelection();
   customSpiceInput.focus();
@@ -847,6 +933,7 @@ function updateSelection() {
   const spices = selectedSpices();
   const count = spices.length;
   const heading = labelHeadingInput.value;
+  const footer = labelFooterInput.value;
   const template = currentTemplate();
   const borderStyle = borderStyleSelect.value;
   const fontStyle = labelFontSelect.value;
@@ -878,6 +965,7 @@ function updateSelection() {
       previewCanvas,
       name,
       heading,
+      footer,
       borderStyle,
       template,
       fontStyle,
@@ -886,7 +974,11 @@ function updateSelection() {
   });
 }
 
-spiceOptions.append(...DEFAULT_SPICES.map(createSpiceOption));
+const { section: spicesSection, options: defaultSpiceOptions } =
+  createIngredientSection("Spices", DEFAULT_SPICES);
+const { section: oilsSection } = createIngredientSection("Oils", DEFAULT_OILS);
+
+spiceOptions.append(spicesSection, oilsSection);
 spiceOptions.addEventListener("change", updateSelection);
 labelTemplateSelect.addEventListener("change", updateSelection);
 borderStyleSelect.addEventListener("change", updateSelection);
@@ -899,6 +991,11 @@ labelHeadingInput.addEventListener("input", () => {
   updateSelection();
 });
 resetHeadingButton.addEventListener("click", resetHeading);
+labelFooterInput.addEventListener("input", () => {
+  saveFooter();
+  updateSelection();
+});
+resetFooterButton.addEventListener("click", resetFooter);
 addSpiceButton.addEventListener("click", addCustomSpice);
 customSpiceInput.addEventListener("input", () => {
   message.classList.remove("success");
@@ -928,6 +1025,7 @@ form.addEventListener("submit", async (event) => {
     const pdf = createPdf(
       spices,
       labelHeadingInput.value,
+      labelFooterInput.value,
       template,
       borderStyleSelect.value,
       labelFontSelect.value,
@@ -955,18 +1053,26 @@ form.addEventListener("submit", async (event) => {
 });
 
 window.addEventListener("storage", (event) => {
-  if (event.key !== LABEL_HEADING_STORAGE_KEY) {
+  if (event.key === LABEL_HEADING_STORAGE_KEY) {
+    labelHeadingInput.value = (event.newValue ?? DEFAULT_LABEL_HEADING).slice(
+      0,
+      labelHeadingInput.maxLength,
+    );
+    updateHeadingResetButton();
+  } else if (event.key === LABEL_FOOTER_STORAGE_KEY) {
+    labelFooterInput.value = (event.newValue ?? DEFAULT_LABEL_FOOTER).slice(
+      0,
+      labelFooterInput.maxLength,
+    );
+    updateFooterResetButton();
+  } else {
     return;
   }
 
-  labelHeadingInput.value = (event.newValue ?? DEFAULT_LABEL_HEADING).slice(
-    0,
-    labelHeadingInput.maxLength,
-  );
-  updateHeadingResetButton();
   updateSelection();
 });
 
 restoreSavedHeading();
+restoreSavedFooter();
 document.fonts.ready.then(updateSelection);
 updateSelection();
