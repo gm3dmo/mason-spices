@@ -174,6 +174,7 @@ const DEFAULT_SPICES = [
   "Coriander Seeds",
   "Cinnamon Sticks",
   "Ground Cumin",
+  "Fennel Seeds",
   "Sesame Seeds",
   "Nutritional Yeast",
 ];
