@@ -21,7 +21,7 @@ const POINTS_PER_INCH = 72;
 const A4_WIDTH = (210 / 25.4) * POINTS_PER_INCH;
 const A4_HEIGHT = (297 / 25.4) * POINTS_PER_INCH;
 const MAX_SPICES = 100;
-const LID_LABEL_DIAMETER = 51 / 25.4;
+const LID_LABEL_DIAMETER = 55 / 25.4;
 const LID_LABEL_MARGIN = 6.5 / 25.4;
 const LID_LABEL_COLUMNS = 3;
 const LID_LABEL_ROWS = 5;
@@ -177,6 +177,7 @@ const DEFAULT_SPICES = [
   "Onion Powder",
   "Kashmiri Chilli",
   "Hot Chilli Powder",
+  "Chilli Powder",
   "Mexican Oregano",
   "Oregano",
   "Ground Coriander",
@@ -1155,7 +1156,7 @@ function updateTemplateDetails(template) {
   dimension.textContent = template.size;
   templateNote.textContent = `${template.size} · ${template.columns} columns × ${template.rows} rows · ${capacity} per sheet`;
   printTipText.textContent = template.cutOffset
-    ? "A4 plain paper · Jar cut guides + 51 mm lid labels · Print at 100% scale."
+    ? "A4 plain paper · Jar cut guides + 55 mm lid labels · Print at 100% scale."
     : `${template.paper} · Matches the selected Avery sheet · Print at 100% scale.`;
 }
 
