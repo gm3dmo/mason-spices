@@ -564,9 +564,9 @@ function drawBorder(context, width, height, style) {
   );
 }
 
-function sizeCanvas(canvas, template) {
-  canvas.width = 1200;
-  canvas.height = Math.round(1200 * (template.height / template.width));
+function sizeCanvas(canvas, template, width = 1200) {
+  canvas.width = width;
+  canvas.height = Math.round(width * (template.height / template.width));
 }
 
 function drawLabel(
@@ -1195,7 +1195,7 @@ function updateSelection() {
 
   spices.forEach((name) => {
     const previewCanvas = document.createElement("canvas");
-    sizeCanvas(previewCanvas, template);
+    sizeCanvas(previewCanvas, template, 480);
     previewCanvas.setAttribute("aria-label", `${name} label preview`);
     drawLabel(
       previewCanvas,
