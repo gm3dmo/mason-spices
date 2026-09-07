@@ -21,6 +21,11 @@ const POINTS_PER_INCH = 72;
 const A4_WIDTH = (210 / 25.4) * POINTS_PER_INCH;
 const A4_HEIGHT = (297 / 25.4) * POINTS_PER_INCH;
 const MAX_SPICES = 100;
+const LID_LABEL_DIAMETER = 51 / 25.4;
+const LID_LABEL_MARGIN = 6.5 / 25.4;
+const LID_LABEL_COLUMNS = 3;
+const LID_LABEL_ROWS = 5;
+const LID_LABELS_PER_PAGE = LID_LABEL_COLUMNS * LID_LABEL_ROWS;
 const LABEL_HEADING_STORAGE_KEY = "mason-spices.label-heading";
 const LABEL_FOOTER_STORAGE_KEY = "mason-spices.label-footer";
 const DEFAULT_LABEL_HEADING = labelHeadingInput.defaultValue;
@@ -53,6 +58,7 @@ const LABEL_TEMPLATES = {
     pageHeight: A4_HEIGHT,
     cutOffset: 2 / 25.4,
     originalDesign: true,
+    lidLabels: true,
     size: "60 × 40 mm",
     paper: "A4",
   },
@@ -169,10 +175,13 @@ const DEFAULT_SPICES = [
   "Cardamom Pods",
   "Garlic Powder",
   "Onion Powder",
+  "Kashmiri Chilli",
+  "Hot Chilli Powder",
   "Mexican Oregano",
   "Oregano",
   "Ground Coriander",
   "Coriander Seeds",
+  "Cinnamon",
   "Cinnamon Sticks",
   "Ground Cumin",
   "Fennel Seeds",
@@ -687,6 +696,127 @@ function drawLabel(
   }
 }
 
+function sizeLidCanvas(canvas, size = 900) {
+  canvas.width = size;
+  canvas.height = size;
+}
+
+function fillTextWithinWidth(context, text, x, y, maxWidth) {
+  const measuredWidth = context.measureText(text).width;
+
+  if (measuredWidth <= maxWidth) {
+    context.fillText(text, x, y);
+    return;
+  }
+
+  context.save();
+  context.translate(x, y);
+  context.scale(maxWidth / measuredWidth, 1);
+  context.fillText(text, 0, 0);
+  context.restore();
+}
+
+function drawLidLabel(
+  canvas,
+  name = "",
+  heading = "MASON'S FINE SPICES",
+  footer = "PANTRY GOODS",
+  fontStyle = DEFAULT_LABEL_FONT,
+) {
+  const context = canvas.getContext("2d");
+  const size = canvas.width;
+  const center = size / 2;
+  const displayName = name.trim() || "Your Spice";
+  const displayHeading = heading.trim() || DEFAULT_LABEL_HEADING;
+  const displayFooter = footer.trim();
+  const nameFont = LABEL_FONTS[fontStyle] || LABEL_FONTS[DEFAULT_LABEL_FONT];
+
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, size, size);
+
+  context.fillStyle = "#fffaf0";
+  context.beginPath();
+  context.arc(center, center, size * 0.485, 0, Math.PI * 2);
+  context.fill();
+
+  context.setLineDash([7, 6]);
+  context.strokeStyle = "#b8b4aa";
+  context.lineWidth = 1;
+  context.beginPath();
+  context.arc(center, center, center - 0.5, 0, Math.PI * 2);
+  context.stroke();
+  context.setLineDash([]);
+
+  context.strokeStyle = "#354332";
+  context.lineWidth = 10;
+  context.beginPath();
+  context.arc(center, center, size * 0.455, 0, Math.PI * 2);
+  context.stroke();
+
+  context.strokeStyle = "#b65b3f";
+  context.lineWidth = 3;
+  context.beginPath();
+  context.arc(center, center, size * 0.425, 0, Math.PI * 2);
+  context.stroke();
+
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+
+  const headingFont = "DM Sans, Arial, sans-serif";
+  const headingSize = fitText(
+    context,
+    displayHeading,
+    size * 0.65,
+    size * 0.045,
+    size * 0.026,
+    headingFont,
+    600,
+  );
+  context.fillStyle = "#b65b3f";
+  context.font = `600 ${headingSize}px ${headingFont}`;
+  context.fillText(displayHeading, center, size * 0.27);
+
+  context.fillStyle = "#354332";
+  context.beginPath();
+  context.arc(center, size * 0.335, size * 0.007, 0, Math.PI * 2);
+  context.fill();
+
+  const nameSize = fitText(
+    context,
+    displayName,
+    size * 0.72,
+    size * 0.13,
+    size * 0.06,
+    nameFont.family,
+    nameFont.weight,
+  );
+  context.fillStyle = name.trim() ? "#202019" : "#8d887d";
+  context.font = `${nameFont.weight} ${nameSize}px ${nameFont.family}`;
+  fillTextWithinWidth(context, displayName, center, size * 0.49, size * 0.72);
+
+  context.strokeStyle = "#b65b3f";
+  context.lineWidth = 4;
+  context.beginPath();
+  context.moveTo(size * 0.39, size * 0.62);
+  context.lineTo(size * 0.61, size * 0.62);
+  context.stroke();
+
+  if (displayFooter) {
+    const footerSize = fitText(
+      context,
+      displayFooter,
+      size * 0.58,
+      size * 0.036,
+      size * 0.024,
+      headingFont,
+      600,
+    );
+    context.fillStyle = "#60705a";
+    context.font = `600 ${footerSize}px ${headingFont}`;
+    context.fillText(displayFooter, center, size * 0.69);
+  }
+}
+
 function ascii(value) {
   return new TextEncoder().encode(value);
 }
@@ -746,6 +876,37 @@ function createPageContent(spiceNames, template, firstImageIndex) {
   return `${commands.join("\n")}\n`;
 }
 
+function createLidPageContent(
+  spiceNames,
+  firstImageIndex,
+  pageWidth,
+  pageHeight,
+  columns,
+  rows,
+) {
+  const diameter = LID_LABEL_DIAMETER * POINTS_PER_INCH;
+  const margin = LID_LABEL_MARGIN * POINTS_PER_INCH;
+  const horizontalGap =
+    (pageWidth - margin * 2 - diameter * columns) / (columns - 1);
+  const verticalGap =
+    (pageHeight - margin * 2 - diameter * rows) / (rows - 1);
+  const commands = [];
+
+  spiceNames.forEach((_, index) => {
+    const column = index % columns;
+    const row = Math.floor(index / columns);
+    const left = margin + column * (diameter + horizontalGap);
+    const top = margin + row * (diameter + verticalGap);
+    const bottom = pageHeight - top - diameter;
+
+    commands.push(
+      `q\n${diameter} 0 0 ${diameter} ${left} ${bottom} cm\n/Img${firstImageIndex + index + 1} Do\nQ`,
+    );
+  });
+
+  return `${commands.join("\n")}\n`;
+}
+
 function createPdf(
   spiceNames,
   heading,
@@ -755,7 +916,7 @@ function createPdf(
   fontStyle,
 ) {
   sizeCanvas(renderCanvas, template);
-  const imageBytes = spiceNames.map((name) => {
+  const jarImages = spiceNames.map((name) => {
     drawLabel(
       renderCanvas,
       name,
@@ -765,26 +926,81 @@ function createPdf(
       template,
       fontStyle,
     );
-    return dataUrlToBytes(renderCanvas.toDataURL("image/jpeg", 0.96));
+    return {
+      bytes: dataUrlToBytes(renderCanvas.toDataURL("image/jpeg", 0.96)),
+      width: renderCanvas.width,
+      height: renderCanvas.height,
+    };
   });
-  const labelsPerPage = template.columns * template.rows;
-  const pageCount = Math.ceil(spiceNames.length / labelsPerPage);
+  const lidImages = [];
+
+  if (template.lidLabels) {
+    sizeLidCanvas(renderCanvas);
+    spiceNames.forEach((name) => {
+      drawLidLabel(renderCanvas, name, heading, footer, fontStyle);
+      lidImages.push({
+        bytes: dataUrlToBytes(renderCanvas.toDataURL("image/jpeg", 0.96)),
+        width: renderCanvas.width,
+        height: renderCanvas.height,
+      });
+    });
+  }
+
+  const images = [...jarImages, ...lidImages];
+  const jarLabelsPerPage = template.columns * template.rows;
+  const jarPageCount = Math.ceil(spiceNames.length / jarLabelsPerPage);
+  const lidPageCount = template.lidLabels
+    ? Math.ceil(spiceNames.length / LID_LABELS_PER_PAGE)
+    : 0;
+  const lidLandscape = template.pageWidth > template.pageHeight;
+  const lidColumns = lidLandscape ? LID_LABEL_ROWS : LID_LABEL_COLUMNS;
+  const lidRows = lidLandscape ? LID_LABEL_COLUMNS : LID_LABEL_ROWS;
+  const pages = [];
+
+  for (let pageIndex = 0; pageIndex < jarPageCount; pageIndex += 1) {
+    const firstImageIndex = pageIndex * jarLabelsPerPage;
+    pages.push({
+      width: template.pageWidth,
+      height: template.pageHeight,
+      content: createPageContent(
+        spiceNames.slice(
+          firstImageIndex,
+          firstImageIndex + jarLabelsPerPage,
+        ),
+        template,
+        firstImageIndex,
+      ),
+    });
+  }
+
+  for (let pageIndex = 0; pageIndex < lidPageCount; pageIndex += 1) {
+    const firstSpiceIndex = pageIndex * LID_LABELS_PER_PAGE;
+    pages.push({
+      width: template.pageWidth,
+      height: template.pageHeight,
+      content: createLidPageContent(
+        spiceNames.slice(
+          firstSpiceIndex,
+          firstSpiceIndex + LID_LABELS_PER_PAGE,
+        ),
+        spiceNames.length + firstSpiceIndex,
+        template.pageWidth,
+        template.pageHeight,
+        lidColumns,
+        lidRows,
+      ),
+    });
+  }
+
+  const pageCount = pages.length;
   const pageObjectStart = 3;
   const imageObjectStart = pageObjectStart + pageCount;
-  const contentObjectStart = imageObjectStart + spiceNames.length;
+  const contentObjectStart = imageObjectStart + images.length;
   const pageIds = Array.from(
     { length: pageCount },
     (_, index) => pageObjectStart + index,
   );
-  const pageContents = pageIds.map((_, pageIndex) => {
-    const firstImageIndex = pageIndex * labelsPerPage;
-    return createPageContent(
-      spiceNames.slice(firstImageIndex, firstImageIndex + labelsPerPage),
-      template,
-      firstImageIndex,
-    );
-  });
-  const imageResources = spiceNames
+  const imageResources = images
     .map((_, index) => `/Img${index + 1} ${imageObjectStart + index} 0 R`)
     .join(" ");
   const objects = [
@@ -792,22 +1008,24 @@ function createPdf(
     ascii(
       `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pageCount} >>`,
     ),
-    ...pageIds.map((_, index) =>
+    ...pages.map((page, index) =>
       ascii(
-        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${template.pageWidth} ${template.pageHeight}] /Resources << /XObject << ${imageResources} >> >> /Contents ${contentObjectStart + index} 0 R >>`,
+        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${page.width} ${page.height}] /Resources << /XObject << ${imageResources} >> >> /Contents ${contentObjectStart + index} 0 R >>`,
       ),
     ),
-    ...imageBytes.map((bytes) =>
+    ...images.map((image) =>
       joinBytes([
         ascii(
-          `<< /Type /XObject /Subtype /Image /Width ${renderCanvas.width} /Height ${renderCanvas.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${bytes.length} >>\nstream\n`,
+          `<< /Type /XObject /Subtype /Image /Width ${image.width} /Height ${image.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${image.bytes.length} >>\nstream\n`,
         ),
-        bytes,
+        image.bytes,
         ascii("\nendstream"),
       ]),
     ),
-    ...pageContents.map((content) =>
-      ascii(`<< /Length ${ascii(content).length} >>\nstream\n${content}endstream`),
+    ...pages.map((page) =>
+      ascii(
+        `<< /Length ${ascii(page.content).length} >>\nstream\n${page.content}endstream`,
+      ),
     ),
   ];
 
@@ -937,7 +1155,7 @@ function updateTemplateDetails(template) {
   dimension.textContent = template.size;
   templateNote.textContent = `${template.size} · ${template.columns} columns × ${template.rows} rows · ${capacity} per sheet`;
   printTipText.textContent = template.cutOffset
-    ? "A4 plain paper · 2 mm cut guides · Print at 100% scale."
+    ? "A4 plain paper · Jar cut guides + 51 mm lid labels · Print at 100% scale."
     : `${template.paper} · Matches the selected Avery sheet · Print at 100% scale.`;
 }
 
@@ -950,13 +1168,18 @@ function updateSelection() {
   const borderStyle = borderStyleSelect.value;
   const fontStyle = labelFontSelect.value;
   const capacity = template.columns * template.rows;
-  const sheets = Math.max(1, Math.ceil(count / capacity));
+  const jarSheets = Math.ceil(count / capacity);
+  const lidSheets = template.lidLabels
+    ? Math.ceil(count / LID_LABELS_PER_PAGE)
+    : 0;
+  const sheets = jarSheets + lidSheets;
+  const labelCount = template.lidLabels ? count * 2 : count;
 
   updateTemplateDetails(template);
   selectionCount.textContent =
     count === 0
       ? "NO LABELS SELECTED"
-      : `${count} ${count === 1 ? "LABEL" : "LABELS"} · ${sheets} ${sheets === 1 ? "SHEET" : "SHEETS"}`;
+      : `${labelCount} LABELS · ${sheets} ${sheets === 1 ? "SHEET" : "SHEETS"}`;
   message.classList.remove("success");
   message.textContent = "";
   previewGrid.replaceChildren();
@@ -983,6 +1206,20 @@ function updateSelection() {
       fontStyle,
     );
     previewGrid.append(previewCanvas);
+
+    if (template.lidLabels) {
+      const lidPreviewCanvas = document.createElement("canvas");
+      sizeLidCanvas(lidPreviewCanvas, 360);
+      lidPreviewCanvas.setAttribute("aria-label", `${name} lid label preview`);
+      drawLidLabel(
+        lidPreviewCanvas,
+        name,
+        heading,
+        footer,
+        fontStyle,
+      );
+      previewGrid.append(lidPreviewCanvas);
+    }
   });
 }
 
