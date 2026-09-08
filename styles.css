@@ -269,6 +269,44 @@ form {
   margin-top: 16px;
 }
 
+.lid-label-option {
+  margin-top: 20px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: start;
+  gap: 11px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.28);
+  cursor: pointer;
+}
+
+.lid-label-option input {
+  margin: 3px 0 0;
+  accent-color: var(--sage-dark);
+}
+
+.lid-label-option span {
+  display: grid;
+  gap: 3px;
+}
+
+.lid-label-option strong {
+  font-size: 0.77rem;
+  letter-spacing: 0.03em;
+}
+
+.lid-label-option small {
+  color: #817c71;
+  font-size: 0.67rem;
+}
+
+.lid-label-option:has(input:disabled) {
+  color: #918d83;
+  cursor: default;
+  opacity: 0.65;
+}
+
 .format-fields {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);

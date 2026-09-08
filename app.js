@@ -6,6 +6,7 @@ const labelHeadingInput = document.querySelector("#label-heading");
 const resetHeadingButton = document.querySelector("#reset-heading-button");
 const labelFooterInput = document.querySelector("#label-footer");
 const resetFooterButton = document.querySelector("#reset-footer-button");
+const includeLidLabelsInput = document.querySelector("#include-lid-labels");
 const spiceOptions = document.querySelector("#spice-options");
 const customSpiceInput = document.querySelector("#custom-spice");
 const addSpiceButton = document.querySelector("#add-spice-button");
@@ -925,7 +926,9 @@ function createPdf(
   template,
   borderStyle,
   fontStyle,
+  includeLidLabels = true,
 ) {
+  const generateLidLabels = template.lidLabels && includeLidLabels;
   sizeCanvas(renderCanvas, template);
   const jarImages = spiceNames.map((name) => {
     drawLabel(
@@ -945,7 +948,7 @@ function createPdf(
   });
   const lidImages = [];
 
-  if (template.lidLabels) {
+  if (generateLidLabels) {
     sizeLidCanvas(renderCanvas);
     spiceNames.forEach((name) => {
       drawLidLabel(renderCanvas, name, heading, footer, fontStyle);
@@ -960,7 +963,7 @@ function createPdf(
   const images = [...jarImages, ...lidImages];
   const jarLabelsPerPage = template.columns * template.rows;
   const jarPageCount = Math.ceil(spiceNames.length / jarLabelsPerPage);
-  const lidPageCount = template.lidLabels
+  const lidPageCount = generateLidLabels
     ? Math.ceil(spiceNames.length / LID_LABELS_PER_PAGE)
     : 0;
   const lidLandscape = template.pageWidth > template.pageHeight;
@@ -1163,11 +1166,17 @@ function addCustomSpice() {
 
 function updateTemplateDetails(template) {
   const capacity = template.columns * template.rows;
+  const includeLidLabels =
+    template.lidLabels && includeLidLabelsInput.checked;
+
+  includeLidLabelsInput.disabled = !template.lidLabels;
   dimension.textContent = template.size;
   templateNote.textContent = `${template.size} · ${template.columns} columns × ${template.rows} rows · ${capacity} per sheet`;
-  printTipText.textContent = template.cutOffset
+  printTipText.textContent = includeLidLabels
     ? "A4 plain paper · Jar cut guides + 57 mm lid labels · Print at 100% scale."
-    : `${template.paper} · Matches the selected Avery sheet · Print at 100% scale.`;
+    : template.cutOffset
+      ? "A4 plain paper · Jar cut guides · Print at 100% scale."
+      : `${template.paper} · Matches the selected Avery sheet · Print at 100% scale.`;
 }
 
 function updateSelection() {
@@ -1178,13 +1187,15 @@ function updateSelection() {
   const template = currentTemplate();
   const borderStyle = borderStyleSelect.value;
   const fontStyle = labelFontSelect.value;
+  const includeLidLabels =
+    template.lidLabels && includeLidLabelsInput.checked;
   const capacity = template.columns * template.rows;
   const jarSheets = Math.ceil(count / capacity);
-  const lidSheets = template.lidLabels
+  const lidSheets = includeLidLabels
     ? Math.ceil(count / LID_LABELS_PER_PAGE)
     : 0;
   const sheets = jarSheets + lidSheets;
-  const labelCount = template.lidLabels ? count * 2 : count;
+  const labelCount = includeLidLabels ? count * 2 : count;
 
   updateTemplateDetails(template);
   selectionCount.textContent =
@@ -1218,7 +1229,7 @@ function updateSelection() {
     );
     previewGrid.append(previewCanvas);
 
-    if (template.lidLabels) {
+    if (includeLidLabels) {
       const lidPreviewCanvas = document.createElement("canvas");
       sizeLidCanvas(lidPreviewCanvas, 360);
       lidPreviewCanvas.setAttribute("aria-label", `${name} lid label preview`);
@@ -1242,6 +1253,7 @@ const { section: oilsSection } = createIngredientSection("Oils", DEFAULT_OILS);
 spiceOptions.append(spicesSection, oilsSection);
 spiceOptions.addEventListener("change", updateSelection);
 labelTemplateSelect.addEventListener("change", updateSelection);
+includeLidLabelsInput.addEventListener("change", updateSelection);
 borderStyleSelect.addEventListener("change", updateSelection);
 labelFontSelect.addEventListener("change", async () => {
   await loadLabelFont(labelFontSelect.value);
@@ -1290,6 +1302,7 @@ form.addEventListener("submit", async (event) => {
       template,
       borderStyleSelect.value,
       labelFontSelect.value,
+      includeLidLabelsInput.checked,
     );
     const downloadUrl = URL.createObjectURL(pdf);
     const link = document.createElement("a");
