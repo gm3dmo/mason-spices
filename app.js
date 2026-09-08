@@ -21,10 +21,10 @@ const POINTS_PER_INCH = 72;
 const A4_WIDTH = (210 / 25.4) * POINTS_PER_INCH;
 const A4_HEIGHT = (297 / 25.4) * POINTS_PER_INCH;
 const MAX_SPICES = 100;
-const LID_LABEL_DIAMETER = 55 / 25.4;
+const LID_LABEL_DIAMETER = 57 / 25.4;
 const LID_LABEL_MARGIN = 6.5 / 25.4;
 const LID_LABEL_COLUMNS = 3;
-const LID_LABEL_ROWS = 5;
+const LID_LABEL_ROWS = 4;
 const LID_LABELS_PER_PAGE = LID_LABEL_COLUMNS * LID_LABEL_ROWS;
 const LABEL_HEADING_STORAGE_KEY = "mason-spices.label-heading";
 const LABEL_FOOTER_STORAGE_KEY = "mason-spices.label-footer";
@@ -723,6 +723,7 @@ function drawLidLabel(
   heading = "MASON'S FINE SPICES",
   footer = "PANTRY GOODS",
   fontStyle = DEFAULT_LABEL_FONT,
+  showCutGuide = false,
 ) {
   const context = canvas.getContext("2d");
   const size = canvas.width;
@@ -740,13 +741,17 @@ function drawLidLabel(
   context.arc(center, center, size * 0.485, 0, Math.PI * 2);
   context.fill();
 
-  context.setLineDash([7, 6]);
-  context.strokeStyle = "#b8b4aa";
-  context.lineWidth = 1;
-  context.beginPath();
-  context.arc(center, center, center - 0.5, 0, Math.PI * 2);
-  context.stroke();
-  context.setLineDash([]);
+  if (showCutGuide) {
+    const previewScale =
+      size / (LID_LABEL_DIAMETER * POINTS_PER_INCH);
+    context.setLineDash([2 * previewScale, 2 * previewScale]);
+    context.strokeStyle = "#a6a6a6";
+    context.lineWidth = 0.25 * previewScale;
+    context.beginPath();
+    context.arc(center, center, center - context.lineWidth / 2, 0, Math.PI * 2);
+    context.stroke();
+    context.setLineDash([]);
+  }
 
   context.strokeStyle = "#354332";
   context.lineWidth = 10;
@@ -891,7 +896,9 @@ function createLidPageContent(
     (pageWidth - margin * 2 - diameter * columns) / (columns - 1);
   const verticalGap =
     (pageHeight - margin * 2 - diameter * rows) / (rows - 1);
-  const commands = [];
+  const commands = ["0.25 w", "[2 2] 0 d", "0.65 G"];
+  const radius = diameter / 2;
+  const curveOffset = radius * 0.5522847498;
 
   spiceNames.forEach((_, index) => {
     const column = index % columns;
@@ -899,9 +906,12 @@ function createLidPageContent(
     const left = margin + column * (diameter + horizontalGap);
     const top = margin + row * (diameter + verticalGap);
     const bottom = pageHeight - top - diameter;
+    const centerX = left + radius;
+    const centerY = bottom + radius;
 
     commands.push(
       `q\n${diameter} 0 0 ${diameter} ${left} ${bottom} cm\n/Img${firstImageIndex + index + 1} Do\nQ`,
+      `${centerX + radius} ${centerY} m\n${centerX + radius} ${centerY + curveOffset} ${centerX + curveOffset} ${centerY + radius} ${centerX} ${centerY + radius} c\n${centerX - curveOffset} ${centerY + radius} ${centerX - radius} ${centerY + curveOffset} ${centerX - radius} ${centerY} c\n${centerX - radius} ${centerY - curveOffset} ${centerX - curveOffset} ${centerY - radius} ${centerX} ${centerY - radius} c\n${centerX + curveOffset} ${centerY - radius} ${centerX + radius} ${centerY - curveOffset} ${centerX + radius} ${centerY} c S`,
     );
   });
 
@@ -1156,7 +1166,7 @@ function updateTemplateDetails(template) {
   dimension.textContent = template.size;
   templateNote.textContent = `${template.size} · ${template.columns} columns × ${template.rows} rows · ${capacity} per sheet`;
   printTipText.textContent = template.cutOffset
-    ? "A4 plain paper · Jar cut guides + 55 mm lid labels · Print at 100% scale."
+    ? "A4 plain paper · Jar cut guides + 57 mm lid labels · Print at 100% scale."
     : `${template.paper} · Matches the selected Avery sheet · Print at 100% scale.`;
 }
 
@@ -1218,6 +1228,7 @@ function updateSelection() {
         heading,
         footer,
         fontStyle,
+        true,
       );
       previewGrid.append(lidPreviewCanvas);
     }
