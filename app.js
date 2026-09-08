@@ -47,11 +47,11 @@ const LABEL_TEMPLATES = {
   "plain-a4": {
     name: "Plain A4",
     width: 60 / 25.4,
-    height: 40 / 25.4,
+    height: 36 / 25.4,
     columns: 3,
     rows: 6,
     left: 20 / 25.4,
-    top: 20 / 25.4,
+    top: 22 / 25.4,
     horizontalPitch: 64 / 25.4,
     verticalPitch: 44 / 25.4,
     pageWidth: A4_WIDTH,
@@ -59,7 +59,7 @@ const LABEL_TEMPLATES = {
     cutOffset: 2 / 25.4,
     originalDesign: true,
     lidLabels: true,
-    size: "60 × 40 mm",
+    size: "60 × 36 mm",
     paper: "A4",
   },
   l7159: {
