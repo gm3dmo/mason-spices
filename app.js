@@ -184,7 +184,7 @@ const DEFAULT_SPICES = [
   "Ground Coriander",
   "Coriander Seeds",
   "Cinnamon",
-  "Cinnamon Sticks",
+  "Cinnamon Quills",
   "Ground Cumin",
   "Fennel Seeds",
   "Sesame Seeds",
@@ -1018,7 +1018,9 @@ function createPdf(
     .map((_, index) => `/Img${index + 1} ${imageObjectStart + index} 0 R`)
     .join(" ");
   const objects = [
-    ascii("<< /Type /Catalog /Pages 2 0 R >>"),
+    ascii(
+      "<< /Type /Catalog /Pages 2 0 R /ViewerPreferences << /Duplex /Simplex >> >>",
+    ),
     ascii(
       `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pageCount} >>`,
     ),
@@ -1173,10 +1175,10 @@ function updateTemplateDetails(template) {
   dimension.textContent = template.size;
   templateNote.textContent = `${template.size} · ${template.columns} columns × ${template.rows} rows · ${capacity} per sheet`;
   printTipText.textContent = includeLidLabels
-    ? "A4 plain paper · Jar cut guides + 57 mm lid labels · Print at 100% scale."
+    ? "A4 plain paper · Jar cut guides + 57 mm lid labels · Print single-sided at 100% scale."
     : template.cutOffset
-      ? "A4 plain paper · Jar cut guides · Print at 100% scale."
-      : `${template.paper} · Matches the selected Avery sheet · Print at 100% scale.`;
+      ? "A4 plain paper · Jar cut guides · Print single-sided at 100% scale."
+      : `${template.paper} · Matches the selected Avery sheet · Print single-sided at 100% scale.`;
 }
 
 function updateSelection() {
