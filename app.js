@@ -57,7 +57,7 @@ const LABEL_TEMPLATES = {
     verticalPitch: 44 / 25.4,
     pageWidth: A4_WIDTH,
     pageHeight: A4_HEIGHT,
-    cutOffset: 2 / 25.4,
+    cutOffset: 1 / 25.4,
     originalDesign: true,
     lidLabels: true,
     size: "60 × 36 mm",
