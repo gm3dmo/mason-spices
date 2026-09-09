@@ -179,6 +179,7 @@ const DEFAULT_SPICES = [
   "Kashmiri Chilli",
   "Hot Chilli Powder",
   "Chilli Powder",
+  "Tandoori Masala",
   "Mexican Oregano",
   "Oregano",
   "Ground Coriander",
