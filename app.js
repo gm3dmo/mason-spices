@@ -173,6 +173,7 @@ const DEFAULT_SPICES = [
   "Cumin Powder",
   "Cumin Seeds",
   "Ginger Powder",
+  "Turmeric",
   "Cardamom Pods",
   "Garlic Powder",
   "Onion Powder",
